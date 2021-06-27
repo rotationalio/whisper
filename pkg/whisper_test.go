@@ -26,16 +26,18 @@ var testEnv = map[string]string{
 // WhisperTestSuite mocks the database and gin/http requests for testing endpoints.
 type WhisperTestSuite struct {
 	suite.Suite
-	api    *Server
-	conf   config.Config
-	router http.Handler
+	api     *Server
+	conf    config.Config
+	router  http.Handler
+	prevEnv map[string]string
 }
 
 func (s *WhisperTestSuite) SetupSuite() {
+	// Store the previous environment to restore test suite
+	s.prevEnv = curEnv()
+
 	// Update the test environment
-	for key, val := range testEnv {
-		os.Setenv(key, val)
-	}
+	setEnv()
 
 	// Create test configuration for mocked database and server
 	var err error
@@ -53,10 +55,56 @@ func (s *WhisperTestSuite) SetupSuite() {
 	s.api.SetHealth(true)
 }
 
+func (s *WhisperTestSuite) TearDownSuite() {
+	// Restore the previous environment
+	for key, val := range s.prevEnv {
+		if val != "" {
+			os.Setenv(key, val)
+		} else {
+			os.Unsetenv(key)
+		}
+	}
+}
+
 func TestWhisper(t *testing.T) {
 	suite.Run(t, new(WhisperTestSuite))
 }
 
 func (s *WhisperTestSuite) TestGinMode() {
 	s.Equal(gin.TestMode, gin.Mode())
+}
+
+// Returns the current environment for the specified keys, or if no keys are specified
+// then returns the current environment for all keys in testEnv.
+func curEnv(keys ...string) map[string]string {
+	env := make(map[string]string)
+	if len(keys) > 0 {
+		for _, envvar := range keys {
+			if val, ok := os.LookupEnv(envvar); ok {
+				env[envvar] = val
+			}
+		}
+	} else {
+		for key := range testEnv {
+			env[key] = os.Getenv(key)
+		}
+	}
+
+	return env
+}
+
+// Sets the environment variable from the testEnv, if no keys are specified, then sets
+// all environment variables from the test env.
+func setEnv(keys ...string) {
+	if len(keys) > 0 {
+		for _, key := range keys {
+			if val, ok := testEnv[key]; ok {
+				os.Setenv(key, val)
+			}
+		}
+	} else {
+		for key, val := range testEnv {
+			os.Setenv(key, val)
+		}
+	}
 }

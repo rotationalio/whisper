@@ -1,0 +1,140 @@
+project_name: whisper
+dist: dist
+builds:
+  # Define multiple builds as a yaml list, specify by a unique ID
+  - id: "cmd-whisper-build"
+
+    # Path to project's (sub)directory containing Go code.
+    dir: .
+
+    # Path to main.go file or main package.
+    main: ./cmd/whisper
+
+    # Binary name (can be a path to wrap binary in a directory)
+    binary: whisper
+
+    # Custom flags templates
+    flags:
+      - -v
+
+    # Custom ldflags templates.
+    ldflags: -s -w -X main.version={{.Version}} -X main.commit={{.Commit}} -X main.date={{.Date}}
+
+    # Custom environment variables to be set during the build
+    env:
+      - CGO_ENABLED=0
+
+      # GOOS list to build for
+      # For more info refer to: https://golang.org/doc/install/source#environment
+    goos:
+      - linux
+      - darwin
+
+    # GOARCH to build for.
+    # For more info refer to: https://golang.org/doc/install/source#environment
+    goarch:
+      - amd64
+      - "386"
+      - arm64
+
+    # GOARM to build for when GOARCH is arm.
+    # For more info refer to: https://golang.org/doc/install/source#environment
+    goarm:
+      - "6"
+
+    # List of combinations of GOOS + GOARCH + GOARM to ignore.
+    ignore:
+      - goos: darwin
+        goarch: 386
+
+    # Set the modified timestamp on the output binary, typically
+    # you would do this to ensure a build was reproducible. Pass
+    # empty string to skip modifying the output.
+    mod_timestamp: '{{ .CommitTimestamp }}'
+
+# Create .tar.gz and .zip archives
+archives:
+  # tar.gz archive of the binaries
+  - id: "whisper-archive-tgz"
+    format: tar.gz
+    builds:
+      - "cmd-whisper-build"
+    name_template: "{{ .ProjectName }}_{{ .Version }}_{{ .Os }}_{{ .Arch }}"
+    wrap_in_directory: true
+    files:
+      - LICENSE
+      - README.md
+
+  # zip archive of the binaries
+  - id: "whisper-archive-zip"
+    format: zip
+    builds:
+      - "cmd-whisper-build"
+    name_template: "{{ .ProjectName }}_{{ .Version }}_{{ .Os }}_{{ .Arch }}"
+    wrap_in_directory: true
+    files:
+      - LICENSE
+      - README.md
+
+# Used to validate if downloaded files are correct
+checksum:
+  name_template: '{{ .ProjectName }}_{{ .Version }}_checksums.txt'
+  algorithm: sha256
+
+# Publish the release on GitHub
+release:
+  # Repo in which the release will be created.
+  # Default is extracted from the origin remote URL or empty if its private hosted.
+  # Valid options are either github, gitlab or gitea
+  github:
+    owner: rotationalio
+    name: whisper
+
+  # You can change the name of the release.
+  name_template: '{{.Tag}}'
+
+  # If set to auto, will mark the release as not ready for production
+  # in case there is an indicator for this in the tag e.g. v1.0.0-rc1
+  # If set to true, will mark the release as not ready for production.
+  prerelease: auto
+
+  # Header for the release body.
+  header: |
+    The whisper service is an internal helper tool used at Rotational Labs to share
+    secrets and secret files securely. We've made the code open source and are happy to
+    have general contributions that enhance the project, and have made these releases
+    freely available with no warranty to anyone who would like to use them.
+
+    ## Changes
+
+    [TODO: describe changes]
+
+  # Footer for the release body.
+  footer: |
+    ### About
+
+    Please note that this service is an internal-only tool and has been constructed as
+    such. Rotational Labs makes no guarantees or warranties about the security of this
+    software project and provides all compiled binaries as is for general use. Use at
+    your own risk!
+
+  # If set to true, will not auto-publish the release.
+  disable: false
+
+changelog:
+  # Set it to true if you wish to skip the changelog generation.
+  skip: false
+
+  filters:
+    # Commit messages matching the regexp listed here will be removed from the changelog
+    exclude:
+      - (?i)typo
+      - (?i)^f$
+
+source:
+  enabled: true
+  format: 'zip'
+
+signs:
+  - artifacts: checksum
+    args: ["--batch", "-u", "{{ .Env.GPG_FINGERPRINT }}", "--output", "${signature}", "--detach-sign", "${artifact}"]

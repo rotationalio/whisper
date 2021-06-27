@@ -4,6 +4,7 @@ import (
 	"os"
 	"testing"
 
+	"github.com/gin-gonic/gin"
 	"github.com/rotationalio/whisper/pkg/config"
 	"github.com/rs/zerolog"
 	"github.com/stretchr/testify/require"
@@ -40,7 +41,12 @@ func TestConfig(t *testing.T) {
 
 	// Test configuration set from the environment
 	require.Equal(t, false, conf.Maintenance)
+	require.Equal(t, gin.ReleaseMode, conf.Mode)
 	require.Equal(t, testEnv["WHISPER_BIND_ADDR"], conf.BindAddr)
+	require.Equal(t, false, conf.UseTLS)
+	require.Equal(t, testEnv["WHISPER_DOMAIN"], conf.Domain)
+	require.Equal(t, testEnv["WHISPER_SECRET_KEY"], conf.SecretKey)
+	require.Equal(t, testEnv["WHISPER_DATABASE_URL"], conf.DatabaseURL)
 	require.Equal(t, zerolog.DebugLevel, conf.GetLogLevel())
 	require.Equal(t, true, conf.ConsoleLog)
 }
