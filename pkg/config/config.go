@@ -1,3 +1,8 @@
+/*
+Package config provides settings and configuration for the whipser server by loading the
+configuration from the environment and specifying reasonable defaults and required
+settings.
+*/
 package config
 
 import (

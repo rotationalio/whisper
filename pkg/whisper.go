@@ -83,7 +83,7 @@ type Server struct {
 }
 
 func (s *Server) Serve() (err error) {
-	s.SetHealth(true)
+	s.SetHealth(!s.conf.Maintenance)
 	s.osSignals()
 
 	if s.conf.Maintenance {
@@ -141,11 +141,9 @@ func (s *Server) setupRoutes() (err error) {
 	// Redirect the root to the current version root
 	s.router.GET("/", s.RedirectVersion)
 
-	// v1 API
-	v1 := s.router.Group(VersionURL())
-	{
-		v1.GET("/status", s.Status)
-	}
+	// Add the v1 API routes (currently the only version)
+	v1 := s.router.Group("/v1")
+	v1.GET("/status", s.Status)
 
 	// NotFound and NotAllowed requests
 	s.router.NoRoute(NotFound)

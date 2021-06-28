@@ -4,20 +4,21 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
+	v1 "github.com/rotationalio/whisper/pkg/api/v1"
 )
 
 var (
-	unsuccessful = Response{Success: false}
-	notFound     = Response{Success: false, Error: "resource not found"}
-	notAllowed   = Response{Success: false, Error: "method not allowed"}
+	unsuccessful = v1.Reply{Success: false}
+	notFound     = v1.Reply{Success: false, Error: "resource not found"}
+	notAllowed   = v1.Reply{Success: false, Error: "method not allowed"}
 )
 
 // ErrorResponse constructs an new response from the error or returns a success: false.
-func ErrorResponse(err error) Response {
+func ErrorResponse(err error) v1.Reply {
 	if err == nil {
 		return unsuccessful
 	}
-	return Response{Success: false, Error: err.Error()}
+	return v1.Reply{Success: false, Error: err.Error()}
 }
 
 // NotFound returns a JSON 404 response for the API.

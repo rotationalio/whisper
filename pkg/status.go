@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
+	v1 "github.com/rotationalio/whisper/pkg/api/v1"
 )
 
 const (
@@ -13,9 +14,11 @@ const (
 )
 
 // Status is an unauthenticated endpoint that returns the status of the api server and
-// can be used for heartbeats and liveness checks.
+// can be used for heartbeats and liveness checks. This status method is the global
+// status method, meaning it returns the latest version of the whipser service, no
+// matter how many API versions are available.
 func (s *Server) Status(c *gin.Context) {
-	c.JSON(http.StatusOK, StatusResponse{
+	c.JSON(http.StatusOK, v1.StatusReply{
 		Status:    serverStatusOK,
 		Timestamp: time.Now(),
 		Version:   Version(),
@@ -27,33 +30,20 @@ func (s *Server) Status(c *gin.Context) {
 // ensure that complex handling doesn't bog down the server.
 func (s *Server) Available() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		// Check maintenance mode
-		if s.conf.Maintenance {
-			c.JSON(http.StatusServiceUnavailable, StatusResponse{
-				Status:    "unavailable",
+		// Check health status (if unhealthy, assume maintenance mode)
+		s.RLock()
+		if !s.healthy {
+			c.JSON(http.StatusServiceUnavailable, v1.StatusReply{
+				Status:    serverStatusUnavailable,
 				Error:     "service is currently in maintenance mode",
 				Timestamp: time.Now(),
 				Version:   Version(),
 			})
 			c.Abort()
+			s.RUnlock()
 			return
 		}
-
-		// Check health status
-		s.RLock()
-		healthy := s.healthy
 		s.RUnlock()
-
-		if !healthy {
-			c.JSON(http.StatusServiceUnavailable, StatusResponse{
-				Status:    "unavailable",
-				Error:     "service is currently shutting down",
-				Timestamp: time.Now(),
-				Version:   Version(),
-			})
-			c.Abort()
-			return
-		}
 		c.Next()
 	}
 }

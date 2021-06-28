@@ -29,6 +29,7 @@ builds:
     goos:
       - linux
       - darwin
+      - windows
 
     # GOARCH to build for.
     # For more info refer to: https://golang.org/doc/install/source#environment
@@ -46,6 +47,10 @@ builds:
     ignore:
       - goos: darwin
         goarch: 386
+      - goos: linux
+        goarch: 386
+      - goos: windows
+        goarch: arm64
 
     # Set the modified timestamp on the output binary, typically
     # you would do this to ensure a build was reproducible. Pass
@@ -57,17 +62,6 @@ archives:
   # tar.gz archive of the binaries
   - id: "whisper-archive-tgz"
     format: tar.gz
-    builds:
-      - "cmd-whisper-build"
-    name_template: "{{ .ProjectName }}_{{ .Version }}_{{ .Os }}_{{ .Arch }}"
-    wrap_in_directory: true
-    files:
-      - LICENSE
-      - README.md
-
-  # zip archive of the binaries
-  - id: "whisper-archive-zip"
-    format: zip
     builds:
       - "cmd-whisper-build"
     name_template: "{{ .ProjectName }}_{{ .Version }}_{{ .Os }}_{{ .Arch }}"
@@ -91,7 +85,7 @@ release:
     name: whisper
 
   # You can change the name of the release.
-  name_template: '{{.Tag}}'
+  name_template: 'Whisper v{{.Version}}'
 
   # If set to auto, will mark the release as not ready for production
   # in case there is an indicator for this in the tag e.g. v1.0.0-rc1
@@ -100,23 +94,22 @@ release:
 
   # Header for the release body.
   header: |
-    The whisper service is an internal helper tool used at Rotational Labs to share
-    secrets and secret files securely. We've made the code open source and are happy to
-    have general contributions that enhance the project, and have made these releases
-    freely available with no warranty to anyone who would like to use them.
 
-    ## Changes
-
-    [TODO: describe changes]
+    [TODO: describe release]
 
   # Footer for the release body.
   footer: |
     ### About
 
-    Please note that this service is an internal-only tool and has been constructed as
-    such. Rotational Labs makes no guarantees or warranties about the security of this
-    software project and provides all compiled binaries as is for general use. Use at
-    your own risk!
+    The whisper service is an internal helper tool used at Rotational Labs to share
+    secrets and secret files securely. We've made the code open source and are happy to
+    have general contributions that enhance the project, and have made these releases
+    freely available with no warranty to anyone who would like to use them.
+
+    Please note that because this service is primarily internal to Rotational Labs it is
+    focused on the needs of Rotational's engineering team. Rotational Labs makes no
+    guarantees or warranties about the security of this software project and provides
+    all compiled binaries as is for general use. Use at your own risk!
 
   # If set to true, will not auto-publish the release.
   disable: false
@@ -134,6 +127,7 @@ changelog:
 source:
   enabled: true
   format: 'zip'
+  name_template: '{{ .ProjectName }}_v{{ .Version }}_source'
 
 signs:
   - artifacts: checksum

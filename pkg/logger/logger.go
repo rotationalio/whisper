@@ -1,3 +1,6 @@
+/*
+Package logger adapts the zerolog package to use GCP serverity levels.
+*/
 package logger
 
 import "github.com/rs/zerolog"
