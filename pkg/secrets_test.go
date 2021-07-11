@@ -13,7 +13,7 @@ func TestGenerateUniqueURL(t *testing.T) {
 		// Generate token
 		token, err := GenerateUniqueURL()
 		require.NoError(t, err)
-		require.Len(t, token, 44)
+		require.Len(t, token, 43)
 
 		// Make sure token is unique
 		_, ok := tokens[token]
