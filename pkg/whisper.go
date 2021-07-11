@@ -11,7 +11,7 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/dn365/gin-zerolog"
+	ginzerolog "github.com/dn365/gin-zerolog"
 	"github.com/gin-gonic/gin"
 	"github.com/rotationalio/whisper/pkg/config"
 	"github.com/rotationalio/whisper/pkg/logger"
@@ -49,13 +49,19 @@ func New(conf config.Config) (s *Server, err error) {
 		log.Logger = log.Output(zerolog.ConsoleWriter{Out: os.Stderr})
 	}
 
+	// Check that a cryptographically secure PNRG is available
+	if err = checkAvailablePRNG(); err != nil {
+		return nil, err
+	}
+
 	// Create the server and prepare to serve
 	s = &Server{conf: conf, errc: make(chan error, 1), healthy: false}
 
 	// Create the router
 	gin.SetMode(conf.Mode)
-	s.router = gin.Default()
+	s.router = gin.New()
 	s.router.Use(ginzerolog.Logger("gin"))
+	s.router.Use(gin.Recovery())
 	if err = s.setupRoutes(); err != nil {
 		return nil, err
 	}
@@ -144,6 +150,8 @@ func (s *Server) setupRoutes() (err error) {
 	// Add the v1 API routes (currently the only version)
 	v1 := s.router.Group("/v1")
 	v1.GET("/status", s.Status)
+	v1.POST("/secrets", s.CreateSecret)
+	v1.GET("/secrets/:token", s.FetchSecret)
 
 	// NotFound and NotAllowed requests
 	s.router.NoRoute(NotFound)

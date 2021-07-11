@@ -1,6 +1,8 @@
 package whisper
 
 import (
+	"encoding/json"
+	"fmt"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -14,11 +16,30 @@ var (
 )
 
 // ErrorResponse constructs an new response from the error or returns a success: false.
-func ErrorResponse(err error) v1.Reply {
+func ErrorResponse(err interface{}) v1.Reply {
 	if err == nil {
 		return unsuccessful
 	}
-	return v1.Reply{Success: false, Error: err.Error()}
+
+	rep := v1.Reply{Success: false}
+	switch err := err.(type) {
+	case error:
+		rep.Error = err.Error()
+	case string:
+		rep.Error = err
+	case fmt.Stringer:
+		rep.Error = err.String()
+	case json.Marshaler:
+		data, e := err.MarshalJSON()
+		if e != nil {
+			panic(err)
+		}
+		rep.Error = string(data)
+	default:
+		rep.Error = "unhandled error response"
+	}
+
+	return rep
 }
 
 // NotFound returns a JSON 404 response for the API.
