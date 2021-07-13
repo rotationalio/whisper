@@ -86,6 +86,11 @@ func main() {
 					Aliases: []string{"G", "gp"},
 					Usage:   "generate a random password of the specified length",
 				},
+				&cli.IntFlag{
+					Name:    "accesses",
+					Aliases: []string{"a"},
+					Usage:   "set number of allowed accesses; default 1, -1 for unlimited until expiration",
+				},
 				&cli.DurationFlag{
 					Name:    "lifetime",
 					Aliases: []string{"l", "e", "expires", "expires-after"},
@@ -115,6 +120,21 @@ func main() {
 					Name:    "out",
 					Aliases: []string{"o", "d", "download"},
 					Usage:   "download the secret to a file or to a directory",
+				},
+			},
+		},
+		{
+			Name:      "destroy",
+			Usage:     "destroy a whisper secret by its token",
+			ArgsUsage: "token",
+			Category:  "client",
+			Before:    initClient,
+			Action:    destroy,
+			Flags: []cli.Flag{
+				&cli.StringFlag{
+					Name:    "password",
+					Aliases: []string{"p"},
+					Usage:   "specify a password to access the secret",
 				},
 			},
 		},
@@ -169,6 +189,7 @@ func create(c *cli.Context) (err error) {
 	// Create the request
 	req := &v1.CreateSecretRequest{
 		Password: c.String("password"),
+		Accesses: c.Int("accesses"),
 		Lifetime: v1.Duration(c.Duration("lifetime")),
 	}
 
@@ -239,15 +260,13 @@ func fetch(c *cli.Context) (err error) {
 	}
 
 	token := c.Args().First()
-	req := &v1.FetchSecretRequest{
-		Password: c.String("password"),
-	}
+	password := c.String("password")
 
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
 
 	var rep *v1.FetchSecretReply
-	if rep, err = client.FetchSecret(ctx, token, req); err != nil {
+	if rep, err = client.FetchSecret(ctx, token, password); err != nil {
 		return cli.Exit(err, 1)
 	}
 
@@ -295,6 +314,24 @@ func fetch(c *cli.Context) (err error) {
 
 	// Simply print the JSON response as the last case.
 	// TODO: should we provide a flag to just print the secret for copy and paste?
+	return printJSON(rep)
+}
+
+func destroy(c *cli.Context) (err error) {
+	if c.NArg() != 1 {
+		return cli.Exit("specify one token to fetch the secret for", 1)
+	}
+
+	token := c.Args().First()
+	password := c.String("password")
+
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
+
+	var rep *v1.DestroySecretReply
+	if rep, err = client.DestroySecret(ctx, token, password); err != nil {
+		return cli.Exit(err, 1)
+	}
 	return printJSON(rep)
 }
 

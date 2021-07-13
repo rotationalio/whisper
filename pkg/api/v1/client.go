@@ -3,6 +3,7 @@ package api
 import (
 	"bytes"
 	"context"
+	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -139,15 +140,41 @@ func (s api) CreateSecret(ctx context.Context, in *CreateSecretRequest) (out *Cr
 	return out, nil
 }
 
-func (s api) FetchSecret(ctx context.Context, token string, in *FetchSecretRequest) (out *FetchSecretReply, err error) {
+func (s api) FetchSecret(ctx context.Context, token, password string) (out *FetchSecretReply, err error) {
 	//  Make the HTTP request
 	var req *http.Request
-	if req, err = s.NewRequest(ctx, http.MethodGet, fmt.Sprintf("/v1/secrets/%s", token), in); err != nil {
+	if req, err = s.NewRequest(ctx, http.MethodGet, fmt.Sprintf("/v1/secrets/%s", token), nil); err != nil {
 		return nil, err
+	}
+
+	// If a password is supplied set the Authorization header
+	if password != "" {
+		req.Header.Add("Authorization", "Bearer "+base64.URLEncoding.EncodeToString([]byte(password)))
 	}
 
 	// Execute the request and get a response
 	out = &FetchSecretReply{}
+	if _, err = s.Do(req, out, true); err != nil {
+		return nil, err
+	}
+
+	return out, nil
+}
+
+func (s api) DestroySecret(ctx context.Context, token, password string) (out *DestroySecretReply, err error) {
+	//  Make the HTTP request
+	var req *http.Request
+	if req, err = s.NewRequest(ctx, http.MethodDelete, fmt.Sprintf("/v1/secrets/%s", token), nil); err != nil {
+		return nil, err
+	}
+
+	// If a password is supplied set the Authorization header
+	if password != "" {
+		req.Header.Add("Authorization", "Bearer "+base64.URLEncoding.EncodeToString([]byte(password)))
+	}
+
+	// Execute the request and get a response
+	out = &DestroySecretReply{}
 	if _, err = s.Do(req, out, true); err != nil {
 		return nil, err
 	}

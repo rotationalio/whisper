@@ -152,6 +152,7 @@ func (s *Server) setupRoutes() (err error) {
 	v1.GET("/status", s.Status)
 	v1.POST("/secrets", s.CreateSecret)
 	v1.GET("/secrets/:token", s.FetchSecret)
+	v1.DELETE("/secrets/:token", s.DestroySecret)
 
 	// NotFound and NotAllowed requests
 	s.router.NoRoute(NotFound)
