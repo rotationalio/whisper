@@ -30,16 +30,24 @@ func (s *Server) CreateSecret(c *gin.Context) {
 	// Parse incoming JSON data from the client request
 	var req v1.CreateSecretRequest
 	if err := c.ShouldBind(&req); err != nil {
+		log.Warn().Err(err).Msg("could not bind request")
 		c.JSON(http.StatusBadRequest, ErrorResponse("invalid create secret request"))
 		return
 	}
 
 	// Create the secret metadata
 	meta := &SecretMetadata{
-		Password: req.Password, // TODO: argon2 hash the password since there is no reason for us to store raw passwords
 		Filename: req.Filename,
 		IsBase64: req.IsBase64,
 		Created:  time.Now(),
+	}
+
+	// Store the password as a derived key
+	var err error
+	if meta.Password, err = CreateDerivedKey(req.Password); err != nil {
+		log.Error().Err(err).Msg("could not create derived key")
+		c.JSON(http.StatusInternalServerError, ErrorResponse(err))
+		return
 	}
 
 	// Compute the number of accesses for the secret
@@ -57,7 +65,6 @@ func (s *Server) CreateSecret(c *gin.Context) {
 	}
 
 	// Create the reply back to the user
-	var err error
 	rep := &v1.CreateSecretReply{
 		Expires: meta.Expires,
 	}
@@ -81,7 +88,6 @@ func (s *Server) CreateSecret(c *gin.Context) {
 // secret from the database and return it to the user. This function also handles the
 // password and ensures that a 404 is returned to obfuscate the existence of the secret
 // on bad requests.
-// TODO: handle passwords with argon2
 func (s *Server) FetchSecret(c *gin.Context) {
 	// Fetch the meta with the token
 	token := c.Param("token")
@@ -101,15 +107,28 @@ func (s *Server) FetchSecret(c *gin.Context) {
 		return
 	}
 
-	// Check the password if it has been posted
-	// TODO: perform argon2 password checking
+	// Check the password if it is required
 	if meta.Password != "" {
 		// A password is required as an Authorization: Bearer <token> header where the
 		// token is the base64 encoded password. Basic auth does not apply here since
 		// there is no username associated with the secret.
 		password := ParseBearerToken(c.GetHeader("Authorization"))
-		if password == "" || password != meta.Password {
+
+		// If no password is specified return unauthorized
+		if password == "" {
 			c.JSON(http.StatusUnauthorized, ErrorResponse("password required for secret"))
+			return
+		}
+
+		// Use derived key algorithm to perform a password verification
+		verified, err := VerifyDerivedKey(meta.Password, password)
+		if err != nil {
+			log.Error().Err(err).Msg("could not verify dervied key")
+			c.JSON(http.StatusInternalServerError, ErrorResponse(err))
+			return
+		}
+		if !verified {
+			c.JSON(http.StatusUnauthorized, ErrorResponse("invalid password"))
 			return
 		}
 	}
@@ -143,7 +162,6 @@ func (s *Server) FetchSecret(c *gin.Context) {
 
 // DestroySecret handles an incoming destroy secret request and attempts to delete the
 // secret from the database. This RPC is password protected in the same way fetch is.
-// TODO: handle passwords with argon2
 func (s *Server) DestroySecret(c *gin.Context) {
 	// Fetch the meta with the token
 	token := c.Param("token")
@@ -163,15 +181,28 @@ func (s *Server) DestroySecret(c *gin.Context) {
 		return
 	}
 
-	// Check the password if it has been posted
-	// TODO: perform argon2 password checking
+	// Check the password if it is required
 	if meta.Password != "" {
 		// A password is required as an Authorization: Bearer <token> header where the
 		// token is the base64 encoded password. Basic auth does not apply here since
 		// there is no username associated with the secret.
 		password := ParseBearerToken(c.GetHeader("Authorization"))
-		if password == "" || password != meta.Password {
+
+		// If no password is specified return unauthorized
+		if password == "" {
 			c.JSON(http.StatusUnauthorized, ErrorResponse("password required for secret"))
+			return
+		}
+
+		// Use derived key algorithm to perform a password verification
+		verified, err := VerifyDerivedKey(meta.Password, password)
+		if err != nil {
+			log.Error().Err(err).Msg("could not verify dervied key")
+			c.JSON(http.StatusInternalServerError, ErrorResponse(err))
+			return
+		}
+		if !verified {
+			c.JSON(http.StatusUnauthorized, ErrorResponse("invalid password"))
 			return
 		}
 	}
