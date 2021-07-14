@@ -11,15 +11,13 @@ import (
 )
 
 var testEnv = map[string]string{
-	"WHISPER_MAINTENANCE":  "false",
-	"WHISPER_MODE":         "release",
-	"WHISPER_BIND_ADDR":    ":443",
-	"WHISPER_USE_TLS":      "false",
-	"WHISPER_DOMAIN":       "localhost",
-	"WHISPER_SECRET_KEY":   "theeaglefliesatmidnight",
-	"WHISPER_DATABASE_URL": "postgresql://localhost:5432/whisper",
-	"WHISPER_LOG_LEVEL":    "debug",
-	"WHISPER_CONSOLE_LOG":  "true",
+	"WHISPER_MAINTENANCE":            "false",
+	"WHISPER_MODE":                   "release",
+	"WHISPER_BIND_ADDR":              ":443",
+	"WHISPER_LOG_LEVEL":              "debug",
+	"WHISPER_CONSOLE_LOG":            "true",
+	"GOOGLE_APPLICATION_CREDENTIALS": "fixtures/whisper-sa.json",
+	"GOOGLE_PROJECT_NAME":            "test-project",
 }
 
 func TestConfig(t *testing.T) {
@@ -43,17 +41,15 @@ func TestConfig(t *testing.T) {
 	require.Equal(t, false, conf.Maintenance)
 	require.Equal(t, gin.ReleaseMode, conf.Mode)
 	require.Equal(t, testEnv["WHISPER_BIND_ADDR"], conf.BindAddr)
-	require.Equal(t, false, conf.UseTLS)
-	require.Equal(t, testEnv["WHISPER_DOMAIN"], conf.Domain)
-	require.Equal(t, testEnv["WHISPER_SECRET_KEY"], conf.SecretKey)
-	require.Equal(t, testEnv["WHISPER_DATABASE_URL"], conf.DatabaseURL)
 	require.Equal(t, zerolog.DebugLevel, conf.GetLogLevel())
+	require.Equal(t, testEnv["GOOGLE_APPLICATION_CREDENTIALS"], conf.Google.Credentials)
+	require.Equal(t, testEnv["GOOGLE_PROJECT_NAME"], conf.Google.Project)
 	require.Equal(t, true, conf.ConsoleLog)
 }
 
 func TestRequiredConfig(t *testing.T) {
 	// Set required environment variables and cleanup after
-	prevEnv := curEnv("WHISPER_DATABASE_URL", "WHISPER_SECRET_KEY")
+	prevEnv := curEnv("WHISPER_BIND_ADDR", "GOOGLE_PROJECT_NAME")
 	t.Cleanup(func() {
 		for key, val := range prevEnv {
 			if val != "" {
@@ -66,14 +62,14 @@ func TestRequiredConfig(t *testing.T) {
 
 	_, err := config.New()
 	require.Error(t, err)
-	setEnv("WHISPER_DATABASE_URL", "WHISPER_SECRET_KEY")
+	setEnv("WHISPER_BIND_ADDR", "GOOGLE_PROJECT_NAME")
 
 	conf, err := config.New()
 	require.NoError(t, err)
 
 	// Test required configuration
-	require.Equal(t, testEnv["WHISPER_DATABASE_URL"], conf.DatabaseURL)
-	require.Equal(t, testEnv["WHISPER_SECRET_KEY"], conf.SecretKey)
+	require.Equal(t, testEnv["WHISPER_BIND_ADDR"], conf.BindAddr)
+	require.Equal(t, testEnv["GOOGLE_PROJECT_NAME"], conf.Google.Project)
 }
 
 // Returns the current environment for the specified keys, or if no keys are specified
