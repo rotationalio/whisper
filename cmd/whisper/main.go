@@ -162,9 +162,8 @@ func serve(c *cli.Context) (err error) {
 	}
 
 	// Update from CLI flags
-	conf.BindAddr = c.String("addr")
-	if c.Bool("no-secure") {
-		conf.UseTLS = false
+	if addr := c.String("addr"); addr != "" {
+		conf.BindAddr = addr
 	}
 
 	// Create and run the whisper server

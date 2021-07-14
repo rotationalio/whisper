@@ -6,9 +6,12 @@ settings.
 package config
 
 import (
+	"errors"
 	"fmt"
+	"os"
 	"strings"
 
+	"github.com/gin-gonic/gin"
 	"github.com/kelseyhightower/envconfig"
 	"github.com/rs/zerolog"
 )
@@ -18,14 +21,16 @@ import (
 type Config struct {
 	Maintenance bool            `split_words:"true" default:"false"`
 	Mode        string          `split_words:"true" default:"debug"`
-	BindAddr    string          `split_words:"true" default:":8318"`
-	UseTLS      bool            `split_words:"true" default:"false"`
-	Domain      string          `split_words:"true" default:"localhost"`
-	SecretKey   string          `split_words:"true" required:"true"`
-	DatabaseURL string          `split_words:"true" required:"true"`
+	BindAddr    string          `split_words:"true" required:"false"`
 	LogLevel    LogLevelDecoder `split_words:"true" default:"info"`
 	ConsoleLog  bool            `split_words:"true" default:"false"`
+	Google      GoogleConfig
 	processed   bool
+}
+
+type GoogleConfig struct {
+	Credentials string `envconfig:"GOOGLE_APPLICATION_CREDENTIALS" required:"false"`
+	Project     string `envconfig:"GOOGLE_PROJECT_NAME" required:"true"`
 }
 
 // New creates a new Config object, loading environment variables and defaults.
@@ -34,6 +39,19 @@ func New() (_ Config, err error) {
 	if err = envconfig.Process("whisper", &conf); err != nil {
 		return Config{}, err
 	}
+
+	// If the BindAddr is not set, try setting it from $PORT (Google Cloud Run)
+	if conf.BindAddr == "" {
+		if port := os.Getenv("PORT"); port != "" {
+			conf.BindAddr = ":" + port
+		}
+	}
+
+	// Extra validation of the configuration
+	if err = conf.Validate(); err != nil {
+		return Config{}, err
+	}
+
 	conf.processed = true
 	return conf, nil
 }
@@ -44,6 +62,17 @@ func (c Config) GetLogLevel() zerolog.Level {
 
 func (c Config) IsZero() bool {
 	return !c.processed
+}
+
+func (c Config) Validate() error {
+	if c.BindAddr == "" {
+		return errors.New("must specify either $WHISPER_BIND_ADDR or $PORT")
+	}
+
+	if c.Mode != gin.ReleaseMode && c.Mode != gin.DebugMode && c.Mode != gin.TestMode {
+		return fmt.Errorf("%q is not a valid gin mode", c.Mode)
+	}
+	return nil
 }
 
 // LogLevelDecoder deserializes the log level from a config string.

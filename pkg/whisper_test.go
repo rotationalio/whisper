@@ -12,15 +12,13 @@ import (
 )
 
 var testEnv = map[string]string{
-	"WHISPER_MAINTENANCE":  "false",
-	"WHISPER_MODE":         gin.TestMode,
-	"WHISPER_BIND_ADDR":    "127.0.0.1:8311",
-	"WHISPER_USE_TLS":      "false",
-	"WHISPER_DOMAIN":       "localhost",
-	"WHISPER_SECRET_KEY":   "supersecretkey",
-	"WHISPER_DATABASE_URL": "file::memory:?cache=shared",
-	"WHISPER_LOG_LEVEL":    "debug",
-	"WHISPER_CONSOLE_LOG":  "false",
+	"WHISPER_MAINTENANCE":            "false",
+	"WHISPER_MODE":                   gin.TestMode,
+	"WHISPER_BIND_ADDR":              "127.0.0.1:8311",
+	"WHISPER_LOG_LEVEL":              "debug",
+	"WHISPER_CONSOLE_LOG":            "false",
+	"GOOGLE_APPLICATION_CREDENTIALS": "fixtures/test.json",
+	"GOOGLE_PROJECT_NAME":            "test",
 }
 
 // WhisperTestSuite mocks the database and gin/http requests for testing endpoints.
