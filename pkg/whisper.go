@@ -58,10 +58,13 @@ func New(conf config.Config) (s *Server, err error) {
 	s = &Server{conf: conf, errc: make(chan error, 1), healthy: false}
 
 	// Create the vault to store secrets in (Google Secret Manager)
-	if s.vault, err = NewSecretManager(conf.Google); err != nil {
-		return nil, err
+	// TODO: if we're in test mode, create a mock secret manager
+	if conf.Mode != gin.TestMode {
+		if s.vault, err = NewSecretManager(conf.Google); err != nil {
+			return nil, err
+		}
+		log.Debug().Msg("connected to google secret manager")
 	}
-	log.Debug().Msg("connected to google secret manager")
 
 	// Create the router
 	gin.SetMode(conf.Mode)
