@@ -57,6 +57,15 @@ func New(conf config.Config) (s *Server, err error) {
 	// Create the server and prepare to serve
 	s = &Server{conf: conf, errc: make(chan error, 1), healthy: false}
 
+	// Create the vault to store secrets in (Google Secret Manager)
+	// TODO: if we're in test mode, create a mock secret manager
+	if conf.Mode != gin.TestMode {
+		if s.vault, err = NewSecretManager(conf.Google); err != nil {
+			return nil, err
+		}
+		log.Debug().Msg("connected to google secret manager")
+	}
+
 	// Create the router
 	gin.SetMode(conf.Mode)
 	s.router = gin.New()
@@ -76,16 +85,18 @@ func New(conf config.Config) (s *Server, err error) {
 		IdleTimeout:  30 * time.Second,
 	}
 
+	log.Debug().Msg("created http server with gin router")
 	return s, nil
 }
 
 type Server struct {
 	sync.RWMutex
-	conf    config.Config // configuration of the API server
-	srv     *http.Server  // handle to a custom http server with specified API defaults
-	router  *gin.Engine   // the http handler and associated middlware
-	healthy bool          // application state of the server
-	errc    chan error    // synchronize shutdown gracefully
+	conf    config.Config  // configuration of the API server
+	srv     *http.Server   // handle to a custom http server with specified API defaults
+	router  *gin.Engine    // the http handler and associated middlware
+	vault   *SecretManager // storage for all secrets the whisper application manages
+	healthy bool           // application state of the server
+	errc    chan error     // synchronize shutdown gracefully
 }
 
 func (s *Server) Serve() (err error) {
@@ -123,6 +134,7 @@ func (s *Server) Shutdown() (err error) {
 
 	switch len(errs) {
 	case 0:
+		log.Debug().Msg("successful shutdown of whisper server")
 		close(s.errc)
 		return nil
 	case 1:
@@ -167,6 +179,7 @@ func (s *Server) SetHealth(health bool) {
 	s.Lock()
 	s.healthy = health
 	s.Unlock()
+	log.Debug().Bool("health", health).Msg("server health set")
 }
 
 func (s *Server) osSignals() {
@@ -176,4 +189,5 @@ func (s *Server) osSignals() {
 		<-quit
 		s.Shutdown()
 	}()
+	log.Debug().Msg("listening for OS signals SIGINT and SIGTERM")
 }

@@ -1,6 +1,7 @@
 package whisper
 
 import (
+	"context"
 	"crypto/rand"
 	"encoding/base64"
 	"fmt"
@@ -21,9 +22,6 @@ const DefaultSecretLifetime = time.Hour * 24 * 7
 // DefaultSecretAccesses ensures that once the secret is fetched it is destroyed
 const DefaultSecretAccesses = 1
 
-var tmpSecretsStore = make(map[string]string)
-var tmpSecretsMeta = make(map[string]*SecretMetadata)
-
 // CreateSecret handles an incoming CreateSecretRequest and attempts to create a new
 // secret that will only be displayed when the correct link is retrieved.
 func (s *Server) CreateSecret(c *gin.Context) {
@@ -35,16 +33,25 @@ func (s *Server) CreateSecret(c *gin.Context) {
 		return
 	}
 
-	// Create the secret metadata
-	meta := &SecretMetadata{
-		Filename: req.Filename,
-		IsBase64: req.IsBase64,
-		Created:  time.Now(),
+	// Make a random URL to store the secret in
+	var (
+		err   error
+		token string
+	)
+	if token, err = s.GenerateUniqueURL(context.TODO()); err != nil {
+		log.Error().Err(err).Msg("could not generate unique token for secret")
+		c.JSON(http.StatusInternalServerError, ErrorResponse(err))
+		return
 	}
 
+	// Create the secret context
+	meta := s.vault.With(token)
+	meta.Filename = req.Filename
+	meta.IsBase64 = req.IsBase64
+	meta.Created = time.Now()
+
 	// Store the password as a derived key
-	var err error
-	if meta.Password, err = CreateDerivedKey(req.Password); err != nil {
+	if err = meta.SetPassword(req.Password); err != nil {
 		log.Error().Err(err).Msg("could not create derived key")
 		c.JSON(http.StatusInternalServerError, ErrorResponse(err))
 		return
@@ -53,35 +60,32 @@ func (s *Server) CreateSecret(c *gin.Context) {
 	// Compute the number of accesses for the secret
 	if req.Accesses == 0 {
 		meta.Accesses = DefaultSecretAccesses
+		log.Debug().Int("accesses", meta.Accesses).Msg("using default number of accesses")
 	} else {
 		meta.Accesses = req.Accesses
+		log.Debug().Int("accesses", meta.Accesses).Msg("using user supplied number of accesses")
 	}
 
 	// Compute the expiration time from the request
 	if req.Lifetime == v1.Duration(0) {
 		meta.Expires = meta.Created.Add(DefaultSecretLifetime)
+		log.Debug().Dur("ttl", DefaultSecretLifetime).Msg("using default secret lifetime")
 	} else {
 		meta.Expires = meta.Created.Add(time.Duration(req.Lifetime))
+		log.Debug().Dur("ttl", time.Duration(req.Lifetime)).Msg("using user supplied secret lifetime")
 	}
 
-	// Create the reply back to the user
-	rep := &v1.CreateSecretReply{
-		Expires: meta.Expires,
-	}
-
-	// Make a random URL to store the secret in
-	if rep.Token, err = GenerateUniqueURL(); err != nil {
-		log.Error().Err(err).Msg("could not generate unique token for secret")
+	// Create the secret in the vault.
+	if err = meta.New(context.TODO(), req.Secret); err != nil {
+		log.Error().Err(err).Msg("could not create new secret in vault")
 		c.JSON(http.StatusInternalServerError, ErrorResponse(err))
-		return
 	}
 
-	// Store the password in the database
-	tmpSecretsStore[rep.Token] = req.Secret
-	tmpSecretsMeta[rep.Token] = meta
-
-	// Return success
-	c.JSON(http.StatusCreated, rep)
+	// Return successful reply back to the user
+	c.JSON(http.StatusCreated, &v1.CreateSecretReply{
+		Token:   token,
+		Expires: meta.Expires,
+	})
 }
 
 // FetchSecret handles an incoming fetch secret request and attempts to retrieve the
@@ -89,71 +93,34 @@ func (s *Server) CreateSecret(c *gin.Context) {
 // password and ensures that a 404 is returned to obfuscate the existence of the secret
 // on bad requests.
 func (s *Server) FetchSecret(c *gin.Context) {
-	// Fetch the meta with the token
+	// Prepare to fetch the meta with the token and password from the request
 	token := c.Param("token")
-	meta, ok := tmpSecretsMeta[token]
-	if !ok {
-		c.JSON(http.StatusNotFound, ErrorResponse("secret not found"))
-		return
-	}
+	meta := s.vault.With(token)
+	password := ParseBearerToken(c.GetHeader("Authorization"))
+	log.Debug().Bool("authorization", password != "").Msg("beginning fetch")
 
-	// Check the secret is valid prior to returning a response (in case a sidechannel
-	// retrieval or race condition failed to destroy the password).
-	if !meta.Valid() {
-		log.Warn().Msg("race condition or invalid secret metadata fetched, destroying")
-		delete(tmpSecretsMeta, token)
-		delete(tmpSecretsStore, token)
-		c.JSON(http.StatusNotFound, ErrorResponse("secret not found"))
-		return
-	}
-
-	// Check the password if it is required
-	if meta.Password != "" {
-		// A password is required as an Authorization: Bearer <token> header where the
-		// token is the base64 encoded password. Basic auth does not apply here since
-		// there is no username associated with the secret.
-		password := ParseBearerToken(c.GetHeader("Authorization"))
-
-		// If no password is specified return unauthorized
-		if password == "" {
-			c.JSON(http.StatusUnauthorized, ErrorResponse("password required for secret"))
-			return
-		}
-
-		// Use derived key algorithm to perform a password verification
-		verified, err := VerifyDerivedKey(meta.Password, password)
-		if err != nil {
-			log.Error().Err(err).Msg("could not verify dervied key")
+	// Attempt to retrieve the secret from the database
+	secret, err := meta.Fetch(context.TODO(), password)
+	if err != nil {
+		switch err {
+		case ErrSecretNotFound:
+			c.JSON(http.StatusNotFound, ErrorResponse(err))
+		case ErrNotAuthorized:
+			c.JSON(http.StatusUnauthorized, ErrorResponse(err))
+		default:
+			log.Error().Err(err).Msg("could not fetch secret")
 			c.JSON(http.StatusInternalServerError, ErrorResponse(err))
-			return
 		}
-		if !verified {
-			c.JSON(http.StatusUnauthorized, ErrorResponse("invalid password"))
-			return
-		}
+		return
 	}
-
-	// Update metadata with the access info
-	meta.Access()
 
 	// Create the secret reply
 	rep := v1.FetchSecretReply{
+		Secret:   secret,
 		Filename: meta.Filename,
 		IsBase64: meta.IsBase64,
 		Created:  meta.Created,
 		Accesses: meta.Retrievals,
-	}
-
-	// Fetch the secret with the token
-	if rep.Secret, ok = tmpSecretsStore[token]; !ok {
-		c.JSON(http.StatusInternalServerError, ErrorResponse("unhandled secret store error"))
-		return
-	}
-
-	// Cleanup if necessary
-	if !meta.Valid() {
-		delete(tmpSecretsMeta, token)
-		delete(tmpSecretsStore, token)
 	}
 
 	// Return the successful reply
@@ -163,53 +130,27 @@ func (s *Server) FetchSecret(c *gin.Context) {
 // DestroySecret handles an incoming destroy secret request and attempts to delete the
 // secret from the database. This RPC is password protected in the same way fetch is.
 func (s *Server) DestroySecret(c *gin.Context) {
-	// Fetch the meta with the token
+	// Prepare to fetch the meta with the token and password from the request
 	token := c.Param("token")
-	meta, ok := tmpSecretsMeta[token]
-	if !ok {
-		c.JSON(http.StatusNotFound, ErrorResponse("secret not found"))
-		return
-	}
-
-	// Check the secret is valid prior to returning a response (in case a sidechannel
-	// retrieval or race condition failed to destroy the password).
-	if !meta.Valid() {
-		log.Warn().Msg("race condition or invalid secret metadata fetched, destroying")
-		delete(tmpSecretsMeta, token)
-		delete(tmpSecretsStore, token)
-		c.JSON(http.StatusNotFound, ErrorResponse("secret not found"))
-		return
-	}
-
-	// Check the password if it is required
-	if meta.Password != "" {
-		// A password is required as an Authorization: Bearer <token> header where the
-		// token is the base64 encoded password. Basic auth does not apply here since
-		// there is no username associated with the secret.
-		password := ParseBearerToken(c.GetHeader("Authorization"))
-
-		// If no password is specified return unauthorized
-		if password == "" {
-			c.JSON(http.StatusUnauthorized, ErrorResponse("password required for secret"))
-			return
-		}
-
-		// Use derived key algorithm to perform a password verification
-		verified, err := VerifyDerivedKey(meta.Password, password)
-		if err != nil {
-			log.Error().Err(err).Msg("could not verify dervied key")
-			c.JSON(http.StatusInternalServerError, ErrorResponse(err))
-			return
-		}
-		if !verified {
-			c.JSON(http.StatusUnauthorized, ErrorResponse("invalid password"))
-			return
-		}
-	}
+	meta := s.vault.With(token)
+	password := ParseBearerToken(c.GetHeader("Authorization"))
+	log.Debug().Bool("authorization", password != "").Msg("beginning destroy")
 
 	// Delete the secret from the database
-	delete(tmpSecretsMeta, token)
-	delete(tmpSecretsStore, token)
+	// Attempt to retrieve the secret from the database
+	err := meta.Destroy(context.TODO(), password)
+	if err != nil {
+		switch err {
+		case ErrSecretNotFound:
+			c.JSON(http.StatusNotFound, ErrorResponse(err))
+		case ErrNotAuthorized:
+			c.JSON(http.StatusUnauthorized, ErrorResponse(err))
+		default:
+			log.Error().Err(err).Msg("could not destroy secret")
+			c.JSON(http.StatusInternalServerError, ErrorResponse(err))
+		}
+		return
+	}
 
 	// Return the successful reply
 	c.JSON(http.StatusOK, &v1.DestroySecretReply{Destroyed: true})
@@ -224,7 +165,7 @@ const (
 // URL-safe string and determines if it is in the database or not. If it finds a
 // collision it attempts to find a unique string for a fixed number of attempts before
 // quitting.
-func GenerateUniqueURL() (token string, err error) {
+func (s *Server) GenerateUniqueURL(ctx context.Context) (token string, err error) {
 	for i := 0; i < generateUniqueAttempts; i++ {
 		// Create a random array of bytes
 		buf := make([]byte, generateUniqueLength)
@@ -236,7 +177,12 @@ func GenerateUniqueURL() (token string, err error) {
 		token := base64.RawURLEncoding.EncodeToString(buf)
 
 		// Check if the token exists already in the database
-		if _, ok := tmpSecretsStore[token]; !ok {
+		var exists bool
+		if exists, err = s.vault.Check(ctx, token); err != nil {
+			return "", err
+		}
+
+		if !exists {
 			return token, nil
 		}
 	}
