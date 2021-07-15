@@ -27,6 +27,7 @@ var (
 	ErrAlreadyExists    = errors.New("secret already exists")
 	ErrSecretNotFound   = errors.New("secret does not exist in secret manager")
 	ErrFileSizeLimit    = errors.New("secret payload exceeds size limit")
+	ErrTimeToLive       = errors.New("expiration time must be at least 1m in the future")
 	ErrPermissionDenied = errors.New("secret manager permission denied")
 	ErrNotAuthorized    = errors.New("correct password required")
 	ErrNotLoaded        = errors.New("secret context needs to be loaded")
@@ -96,7 +97,7 @@ func (sm *SecretManager) Check(ctx context.Context, token string) (_ bool, err e
 				// If the secret doesn't exist (e.g. not created yet or deleted)
 				// This is the condition we're looking for, so no error.
 				return false, nil
-			case codes.PermissionDenied:
+			case codes.PermissionDenied, codes.Unauthenticated:
 				// If we've given a wrong path, wrong project, or wrong service account
 				return false, ErrPermissionDenied
 			}
@@ -195,7 +196,7 @@ func (s *SecretContext) New(ctx context.Context, secret string) (err error) {
 
 	// Create the metadata secret
 	if err = s.Create(ctx, SuffixMetadata); err != nil {
-		return fmt.Errorf("could not create metadata: %s", err)
+		return err
 	}
 
 	// Add a version for the metadata
@@ -207,7 +208,7 @@ func (s *SecretContext) New(ctx context.Context, secret string) (err error) {
 	// Create the secret next
 	if err = s.Create(ctx, SuffixSecret); err != nil {
 		log.Warn().Bool("metadata version", true).Bool("secret", false).Msg("incomplete secret creation")
-		return fmt.Errorf("could not create secret actual: %s", err)
+		return err
 	}
 
 	// Add a version for the secret
@@ -365,13 +366,20 @@ func (s *SecretContext) Create(ctx context.Context, suffix string) (err error) {
 
 		// If the secret already exists, return an error that can be checked
 		serr, ok := status.FromError(err)
-		if ok && serr.Code() == codes.AlreadyExists {
-			log.Debug().Err(err).Msg("create secret rpc error")
-			return ErrAlreadyExists
+		if ok {
+			log.Debug().Str("code", serr.Code().String()).Msg(serr.Message())
+			switch serr.Code() {
+			case codes.AlreadyExists:
+				return ErrAlreadyExists
+			case codes.InvalidArgument:
+				return ErrTimeToLive
+			case codes.PermissionDenied, codes.Unauthenticated:
+				return ErrPermissionDenied
+			}
 		}
 
 		// If the error is something else, something went wrong.
-		return fmt.Errorf("could not create secret: [%d] %s", serr.Code(), serr.Message())
+		return fmt.Errorf("could not create %s: %s", suffix, err)
 	}
 	return nil
 }
@@ -412,7 +420,7 @@ func (s *SecretContext) AddVersion(ctx context.Context, suffix string, payload [
 			case codes.InvalidArgument:
 				// Maximum size limit of 65KiB for the payload
 				return ErrFileSizeLimit
-			case codes.PermissionDenied:
+			case codes.PermissionDenied, codes.Unauthenticated:
 				// If we've given a wrong path, wrong project, or wrong service account
 				return ErrPermissionDenied
 			}
@@ -454,7 +462,7 @@ func (s *SecretContext) LatestVersion(ctx context.Context, suffix string) (_ []b
 			case codes.NotFound:
 				// If the secret doesn't exist (e.g. not created yet or deleted)
 				return nil, ErrSecretNotFound
-			case codes.PermissionDenied:
+			case codes.PermissionDenied, codes.Unauthenticated:
 				// If we've given a wrong path, wrong project, or wrong service account
 				return nil, ErrPermissionDenied
 			}
@@ -493,7 +501,7 @@ func (s *SecretContext) Delete(ctx context.Context, suffix string) (err error) {
 			case codes.NotFound:
 				// If the secret doesn't exist (e.g. not created yet or deleted)
 				return ErrSecretNotFound
-			case codes.PermissionDenied:
+			case codes.PermissionDenied, codes.Unauthenticated:
 				// If we've given a wrong path, wrong project, or wrong service account
 				return ErrPermissionDenied
 			}

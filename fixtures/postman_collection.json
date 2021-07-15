@@ -1,0 +1,119 @@
+{
+	"info": {
+		"_postman_id": "469fbe89-4fda-49c8-bfda-b1c8f9d3c8e7",
+		"name": "Whisper API",
+		"description": "# Introduction\n\nThere are many one time secret management utilities, this one is ours. The Whisper API allows us to quickly share secrets and secret files such as configurations or certificates with each other, knowing that those secrets are stored securely in the backend.\n\n# Overview\n\nThe Whisper API stores secrets in Google Secret Manager for simplicity and only allows access to the secret using a unique token that is generated on create. \n\n# Authentication\n\nThe API is unauthenticated to allow us to share secrets with outside parties. If you'd like you can add a password to a specific secret that must be used to fetch it; each password is stored on a per-secret basis with no user information.\n\nIf an endpoint requires a password (e.g. Fetch and Destroy) it is added as an `Authorization` header with the value `Bearer: base64encodedpassword`. Note that the password must be base64 encoded to support any characters in the password. \n\n# Error Codes\n\nThe primary error code you should get back is `404` - particularly when a secret has already been accessed. If a secret is password protected expect a `401` error. If things go really wrong, `500` errors will be returned, and we'll just have to check the logs to see what happened.\n\n# Rate limit\n\nThere is currently no rate limit, but keep in mind that we're hosting this on Cloud Run, so the more we use it, the more we pay.",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "/v1/status",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"method": "GET",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": ""
+				},
+				"url": {
+					"raw": "/v1/status",
+					"path": [
+						"v1",
+						"status"
+					]
+				},
+				"description": "Health check for the status, availability, and version of the server."
+			},
+			"response": []
+		},
+		{
+			"name": "/v1/secrets",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"secret\": \"the eagle flies at midnight\",\n    \"password\": \"\",\n    \"accesses\": 1,\n    \"lifetime\": \"24h\",\n    \"filename\": \"\",\n    \"is_base64\": false\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "https://whisper.rotational.dev/v1/secrets",
+					"protocol": "https",
+					"host": [
+						"whisper",
+						"rotational",
+						"dev"
+					],
+					"path": [
+						"v1",
+						"secrets"
+					]
+				},
+				"description": "Create a secret"
+			},
+			"response": []
+		},
+		{
+			"name": "/v1/secrets/:token",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"method": "GET",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": ""
+				},
+				"url": {
+					"raw": "/v1/secrets/:token",
+					"path": [
+						"v1",
+						"secrets",
+						":token"
+					],
+					"variable": [
+						{
+							"key": "token"
+						}
+					]
+				},
+				"description": "Fetch a secret via its token."
+			},
+			"response": []
+		},
+		{
+			"name": "/v1/secrets/:token",
+			"request": {
+				"method": "DELETE",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": ""
+				},
+				"url": {
+					"raw": "/v1/secrets/:token",
+					"path": [
+						"v1",
+						"secrets",
+						":token"
+					],
+					"variable": [
+						{
+							"key": "token"
+						}
+					]
+				},
+				"description": "Destroy a secret via its token."
+			},
+			"response": []
+		}
+	]
+}

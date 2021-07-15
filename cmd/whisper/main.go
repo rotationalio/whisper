@@ -35,7 +35,7 @@ func main() {
 			Aliases: []string{"e", "url", "u"},
 			Usage:   "endpoint to connect to the whisper service on",
 			EnvVars: []string{"WHISPER_ENDPOINT", "WHISPER_URL"},
-			Value:   "http://localhost:8318",
+			Value:   "https://whisper.rotational.dev",
 		},
 	}
 
@@ -67,8 +67,8 @@ func main() {
 					Usage:   "input the secret as a string on the command line",
 				},
 				&cli.IntFlag{
-					Name:    "generate",
-					Aliases: []string{"g"},
+					Name:    "generate-secret",
+					Aliases: []string{"G", "gs"},
 					Usage:   "generate a random secret of the specified length",
 				},
 				&cli.StringFlag{
@@ -83,7 +83,7 @@ func main() {
 				},
 				&cli.IntFlag{
 					Name:    "generate-password",
-					Aliases: []string{"G", "gp"},
+					Aliases: []string{"g", "gp"},
 					Usage:   "generate a random password of the specified length",
 				},
 				&cli.IntFlag{
@@ -195,8 +195,8 @@ func create(c *cli.Context) (err error) {
 	// Add the secret to the request via one of the command line options
 	switch {
 	case c.String("secret") != "":
-		if c.Int("generate") != 0 || c.String("in") != "" {
-			return cli.Exit("specify only one of secret, generate, or in path", 1)
+		if c.Int("generate-secret") != 0 || c.String("in") != "" {
+			return cli.Exit("specify only one of secret, generate-secret, or in path", 1)
 		}
 
 		// Basic secret provided via the CLI
@@ -204,9 +204,9 @@ func create(c *cli.Context) (err error) {
 		req.IsBase64 = c.Bool("b64encoded")
 
 	case c.String("in") != "":
-		if c.Int("generate") != 0 {
+		if c.Int("generate-secret") != 0 {
 			// The check for secret has already been done
-			return cli.Exit("specify only one of secret, generate, or in path", 1)
+			return cli.Exit("specify only one of secret, generate-secret, or in path", 1)
 		}
 
 		// Load the secret as base64 encoded data from a file
@@ -218,16 +218,16 @@ func create(c *cli.Context) (err error) {
 		req.Secret = base64.StdEncoding.EncodeToString(data)
 		req.IsBase64 = true
 
-	case c.Int("generate") != 0:
+	case c.Int("generate-secret") != 0:
 		// Generate a random secret of the specified length
-		if req.Secret, err = generateRandomSecret(c.Int("generate")); err != nil {
+		if req.Secret, err = generateRandomSecret(c.Int("generate-secret")); err != nil {
 			return cli.Exit(err, 1)
 		}
 		req.IsBase64 = false
 
 	default:
 		// No secret was specified at all?
-		return cli.Exit("specify at least one of secret, generate, or in path", 1)
+		return cli.Exit("specify at least one of secret, generate-secret, or in path", 1)
 	}
 
 	// Handle password generation if requested
@@ -293,7 +293,6 @@ func fetch(c *cli.Context) (err error) {
 	// If we've discovered a path to write the file to, write it there, decoding the
 	// data as necessary from base64. Otherwise print the json to stdout and exit.
 	if path != "" {
-		fmt.Println(path)
 		var data []byte
 		if rep.IsBase64 {
 			if data, err = base64.StdEncoding.DecodeString(rep.Secret); err != nil {

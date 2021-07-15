@@ -4,6 +4,7 @@ import (
 	"context"
 	"crypto/rand"
 	"encoding/base64"
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -77,8 +78,13 @@ func (s *Server) CreateSecret(c *gin.Context) {
 
 	// Create the secret in the vault.
 	if err = meta.New(context.TODO(), req.Secret); err != nil {
+		if errors.Is(err, ErrTimeToLive) {
+			c.JSON(http.StatusBadRequest, ErrorResponse(err))
+			return
+		}
 		log.Error().Err(err).Msg("could not create new secret in vault")
 		c.JSON(http.StatusInternalServerError, ErrorResponse(err))
+		return
 	}
 
 	// Return successful reply back to the user
