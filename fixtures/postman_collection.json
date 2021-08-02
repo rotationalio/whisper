@@ -19,7 +19,13 @@
 					"raw": ""
 				},
 				"url": {
-					"raw": "/v1/status",
+					"raw": "https://whisper.rotational.dev/v1/status",
+					"protocol": "https",
+					"host": [
+						"whisper",
+						"rotational",
+						"dev"
+					],
 					"path": [
 						"v1",
 						"status"
@@ -36,7 +42,7 @@
 				"header": [],
 				"body": {
 					"mode": "raw",
-					"raw": "{\n    \"secret\": \"the eagle flies at midnight\",\n    \"password\": \"\",\n    \"accesses\": 1,\n    \"lifetime\": \"24h\",\n    \"filename\": \"\",\n    \"is_base64\": false\n}",
+					"raw": "{\n    \"secret\": \"the eagle flies at midnight\",\n    \"password\": \"\",\n    \"accesses\": 1,\n    \"lifetime\": \"168h\",\n    \"filename\": \"\",\n    \"is_base64\": false\n}",
 					"options": {
 						"raw": {
 							"language": "json"
@@ -66,6 +72,16 @@
 				"disableBodyPruning": true
 			},
 			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "c2VjcmV0cGFzc3dvcmQ=",
+							"type": "string"
+						}
+					]
+				},
 				"method": "GET",
 				"header": [],
 				"body": {
@@ -73,7 +89,13 @@
 					"raw": ""
 				},
 				"url": {
-					"raw": "/v1/secrets/:token",
+					"raw": "https://whisper.rotational.dev/v1/secrets/:token",
+					"protocol": "https",
+					"host": [
+						"whisper",
+						"rotational",
+						"dev"
+					],
 					"path": [
 						"v1",
 						"secrets",
@@ -81,7 +103,8 @@
 					],
 					"variable": [
 						{
-							"key": "token"
+							"key": "token",
+							"value": ""
 						}
 					]
 				},
@@ -99,7 +122,13 @@
 					"raw": ""
 				},
 				"url": {
-					"raw": "/v1/secrets/:token",
+					"raw": "https://whisper.rotational.dev/v1/secrets/:token",
+					"protocol": "https",
+					"host": [
+						"whisper",
+						"rotational",
+						"dev"
+					],
 					"path": [
 						"v1",
 						"secrets",
@@ -107,7 +136,8 @@
 					],
 					"variable": [
 						{
-							"key": "token"
+							"key": "token",
+							"value": ""
 						}
 					]
 				},
