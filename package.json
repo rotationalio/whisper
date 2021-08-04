@@ -4,6 +4,8 @@
     "private": true,
     "dependencies": {
         "@material-ui/core": "^4.12.3",
+        "@material-ui/icons": "^4.11.2",
+        "@material-ui/lab": "^4.0.0-alpha.60",
         "@testing-library/jest-dom": "^5.11.4",
         "@testing-library/react": "^11.1.0",
         "@testing-library/user-event": "^12.1.10",
@@ -12,12 +14,18 @@
         "@types/react": "^17.0.15",
         "@types/react-dom": "^17.0.9",
         "axios": "^0.21.1",
+        "clsx": "^1.1.1",
+        "formik": "^2.2.9",
+        "formik-material-ui": "^3.0.1",
+        "formik-material-ui-lab": "^0.0.8",
         "react": "^17.0.2",
         "react-dom": "^17.0.2",
         "react-router-dom": "^5.2.0",
         "react-scripts": "4.0.3",
+        "react-select": "^4.3.1",
         "typescript": "^4.3.5",
-        "web-vitals": "^1.0.1"
+        "web-vitals": "^1.0.1",
+        "yup": "^0.32.9"
     },
     "scripts": {
         "start": "react-scripts start",
@@ -26,11 +34,11 @@
         "eject": "react-scripts eject",
         "lint": "npx eslint \"**/*.{ts, tsx}\"",
         "lint:fix": "npx eslint \"**/*.{ts, tsx}\" --fix",
-				"prettier:fix": "prettier --write \"**/*.{ts, tsx}\"",
+        "prettier:fix": "prettier --write \"**/*.{ts, tsx}\"",
         "prettier": "npx prettier \"**/*.{ts, tsx}\"",
         "prettier:write": "npx prettier -w \"**/*.{ts, tsx}\"",
-				"commit": "cz",
-				"precommit": "npm run lint && npm run prettier:fix",
+        "commit": "cz",
+        "precommit": "npm run lint && npm run prettier:fix",
         "release": "standard-version"
     },
     "eslintConfig": {
@@ -55,6 +63,7 @@
         "@commitlint/cli": "^13.1.0",
         "@commitlint/config-conventional": "^13.1.0",
         "@types/react-router-dom": "^5.1.8",
+        "@types/react-select": "^4.0.17",
         "@typescript-eslint/eslint-plugin": "^4.29.0",
         "@typescript-eslint/parser": "^4.29.0",
         "cz-conventional-changelog": "3.3.0",
@@ -66,27 +75,26 @@
         "prettier": "2.3.2",
         "standard-version": "^9.3.1"
     },
-		"standard-version": {
-		},
-		"husky": {
-			"hooks": {
-				"pre-commit": "lint-staged",
-				"commit-msg": "commitlint -E HUSKY_GIT_PARAMS"
-			}
-		},
-		"lint-staged": {
-			"src/**/*.{js,jsx,ts,tsx,json,css,scss,md}": [
-				"prettier --single-quote --write"
-			]
-		},
-		"commitlint": {
-			"extends": [
-				"@commitlint/config-conventional"
-			]
-		},
-		"config": {
-			"commitizen": {
-				"path": "./node_modules/cz-conventional-changelog"
-			}
-		}
+    "standard-version": {},
+    "husky": {
+        "hooks": {
+            "pre-commit": "lint-staged",
+            "commit-msg": "commitlint -E HUSKY_GIT_PARAMS"
+        }
+    },
+    "lint-staged": {
+        "src/**/*.{js,jsx,ts,tsx,json,css,scss,md}": [
+            "prettier --single-quote --write"
+        ]
+    },
+    "commitlint": {
+        "extends": [
+            "@commitlint/config-conventional"
+        ]
+    },
+    "config": {
+        "commitizen": {
+            "path": "./node_modules/cz-conventional-changelog"
+        }
+    }
 }

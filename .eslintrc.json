@@ -44,7 +44,8 @@
         "react/jsx-filename-extension": [ "warn", {"extensions": [".ts",".tsx"]} ],
         "no-shadow": "off",
         "no-console":1,
-        "@typescript-eslint/no-shadow": ["error"]
+        "@typescript-eslint/no-shadow": ["error"],
+				"react/prop-types": "off"
     },
     "settings": {
 			"react": {
