@@ -12,6 +12,7 @@ import (
 	"time"
 
 	ginzerolog "github.com/dn365/gin-zerolog"
+	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"github.com/rotationalio/whisper/pkg/config"
 	"github.com/rotationalio/whisper/pkg/logger"
@@ -71,6 +72,17 @@ func New(conf config.Config) (s *Server, err error) {
 	s.router = gin.New()
 	s.router.Use(ginzerolog.Logger("gin"))
 	s.router.Use(gin.Recovery())
+
+	// Add CORS configuration
+	// TODO: configure origins from the environment rather than hard-coding
+	s.router.Use(cors.New(cors.Config{
+        AllowAllOrigins:  true,
+		AllowMethods:     []string{"GET", "POST", "PUT", "PATCH", "DELETE", "HEAD"},
+		AllowHeaders:     []string{"Origin", "Content-Length", "Content-Type"},
+		AllowCredentials: true,
+		MaxAge:           12 * time.Hour,
+	}))
+
 	if err = s.setupRoutes(); err != nil {
 		return nil, err
 	}

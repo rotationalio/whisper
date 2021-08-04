@@ -5,6 +5,7 @@ go 1.16
 require (
 	cloud.google.com/go v0.87.0
 	github.com/dn365/gin-zerolog v0.0.0-20171227063204-b43714b00db1
+	github.com/gin-contrib/cors v1.3.1
 	github.com/gin-gonic/gin v1.7.2
 	github.com/joho/godotenv v1.3.0
 	github.com/kelseyhightower/envconfig v1.4.0
