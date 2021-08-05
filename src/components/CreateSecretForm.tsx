@@ -1,30 +1,13 @@
-import { Button, makeStyles, Theme, Typography } from "@material-ui/core";
+import { Button, Typography } from "@material-ui/core";
 import { TextField, Switch } from "formik-material-ui";
 import { Field, Form, Formik } from "formik";
 import { Autocomplete, AutocompleteRenderInputParams } from "formik-material-ui-lab";
 import { TextField as MuiTextField } from "@material-ui/core";
-import * as Yup from "yup";
 import { Lifetime } from "utils/interfaces";
 import { useEffect } from "react";
-
-const useStyles = makeStyles((theme: Theme) => ({
-	form: {
-		display: "flex",
-		flexDirection: "column",
-		gap: theme.spacing(2),
-		maxWidth: 400,
-		margin: "auto",
-		"& .MuiTextField-root": {
-			width: "100%"
-		}
-	},
-	height__full: {
-		height: "100%"
-	},
-	hide: {
-		display: "none"
-	}
-}));
+import { CreateSecretFormProps } from "types/CreateSecretFormProps";
+import { preventNonNumericalInput } from "utils/utils";
+import { useStyles } from "styles/createSecretFormStyles";
 
 const options: Lifetime[] = [
 	{ value: "5m", label: "5 min" },
@@ -39,50 +22,17 @@ const options: Lifetime[] = [
 	{ value: "168h", label: "7 days" }
 ];
 
-const initialValues = {
-	secret: "",
-	password: "",
-	accessType: true,
-	accessNumber: 1,
-	lifetime: { value: "7d", label: "7 days" }
-};
-
-const CreateSecretSchema = Yup.object().shape({
-	secret: Yup.string().required("You must add a secret"),
-	password: Yup.string(),
-	lifetime: Yup.object().shape({ value: Yup.string(), label: Yup.string() }).nullable(),
-	accessType: Yup.boolean(),
-	accessNumber: Yup.number().max(108, "The max number is 108")
-});
-
-const CreateSecretForm: React.FC = () => {
+const CreateSecretForm: React.FC<CreateSecretFormProps> = props => {
 	const classes = useStyles();
 
-	function preventNonNumericalInput(e: any) {
-		e = e || window.event;
-		const charCode = typeof e.which == "undefined" ? e.keyCode : e.which;
-		const charStr = String.fromCharCode(charCode);
-
-		if (!charStr.match(/^[0-9]+$/)) e.preventDefault();
-	}
-
 	return (
-		<Formik
-			initialValues={initialValues}
-			validationSchema={CreateSecretSchema}
-			onSubmit={(values, { setSubmitting }) => {
-				setTimeout(() => {
-					setSubmitting(false);
-					alert(JSON.stringify(values, null, 2));
-				}, 200);
-			}}
-		>
+		<Formik initialValues={props.initialValues} validationSchema={props.validationSchema} onSubmit={props.onSubmit}>
 			{({ isSubmitting, errors, values, setFieldValue }) => {
 				useEffect(() => {
 					if (values.accessType) {
-						setFieldValue("accessNumber", -1);
+						setFieldValue("accesses", -1);
 					} else {
-						setFieldValue("accessNumber", 1);
+						setFieldValue("accesses", 1);
 					}
 				}, [values.accessType]);
 
@@ -122,7 +72,7 @@ const CreateSecretForm: React.FC = () => {
 								component={TextField}
 								type="number"
 								label="Number of access"
-								name="accessNumber"
+								name="accesses"
 								size="small"
 								variant="outlined"
 								pattern="[0-9]*"
