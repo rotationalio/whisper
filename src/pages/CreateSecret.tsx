@@ -5,7 +5,6 @@ import CreateSecretForm from "components/CreateSecretForm";
 const useStyles = makeStyles((theme: Theme) => ({
 	root: {
 		flexGrow: 1,
-		height: "100vh",
 		padding: theme.spacing(2)
 	},
 	h__full: {
