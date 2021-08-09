@@ -9,6 +9,8 @@ import * as Yup from "yup";
 import { useStyles } from "styles/createSecretStyles";
 import { Alert, Color } from "@material-ui/lab";
 import { Lifetime } from "utils/interfaces";
+import { useModal } from "contexts/modalContext";
+import { ModalType } from "utils/enums/modal";
 
 const CreateSecretSchema = Yup.object().shape({
 	secret: Yup.string().required("You must add a secret"),
@@ -40,6 +42,8 @@ const CreateSecret: React.FC = () => {
 		status: undefined,
 		message: undefined
 	});
+	const { dispatch } = useModal();
+
 	const classes = useStyles();
 
 	function handleSubmit(values: FormikValues, helpers: FormikHelpers<Values>) {
@@ -55,13 +59,13 @@ const CreateSecret: React.FC = () => {
 		createSecret(data).then(
 			(response: AxiosResponse) => {
 				setToken(response.data);
-
 				helpers.setSubmitting(false);
+
+				dispatch({ type: ModalType.SHOW_MODAL, payload: response.data });
 			},
 			(error: AxiosError) => {
 				console.error("[error when creating secret]", error.message);
 				setMessage({ status: "error", message: error.message });
-
 				setTimeout(() => {
 					setMessage({ status: undefined, message: undefined });
 				}, 5000);
