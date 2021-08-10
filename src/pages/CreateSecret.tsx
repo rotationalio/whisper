@@ -47,8 +47,10 @@ const CreateSecret: React.FC = () => {
 	const classes = useStyles();
 
 	function handleSubmit(values: FormikValues, helpers: FormikHelpers<Values>) {
+		const lifetime = values.lifetime ? values.lifetime.value : { value: "168h", label: "7 days" };
+
 		const data: Secret = {
-			lifetime: values.lifetime.value,
+			lifetime,
 			secret: values.secret,
 			password: values.password,
 			accesses: values.accesses,

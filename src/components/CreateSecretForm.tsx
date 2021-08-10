@@ -60,7 +60,6 @@ const CreateSecretForm: React.FC<CreateSecretFormProps> = props => {
 								name="password"
 								size="small"
 								variant="outlined"
-								disabled
 							/>
 						</div>
 						<div>
@@ -89,7 +88,6 @@ const CreateSecretForm: React.FC<CreateSecretFormProps> = props => {
 								component={Autocomplete}
 								size="small"
 								options={options}
-								disabled
 								getOptionLabel={(option: Lifetime) => option.label}
 								getOptionSelected={(option: Lifetime, value: Lifetime) => option.value === value.value}
 								renderInput={(params: AutocompleteRenderInputParams) => (
