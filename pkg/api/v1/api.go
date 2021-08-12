@@ -59,11 +59,12 @@ type CreateSecretReply struct {
 }
 
 type FetchSecretReply struct {
-	Secret   string    `json:"secret"`             // the secret retrieved by the database, which is now deleted
-	Filename string    `json:"filename,omitempty"` // the name of the file used to create the secret to save as a file
-	IsBase64 bool      `json:"is_base64"`          // if the secret is base64 encoded data
-	Created  time.Time `json:"created"`            // the timestamp the secret was created
-	Accesses int       `json:"accesses"`           // the number of times the secret has been accessed
+	Secret    string    `json:"secret"`             // the secret retrieved by the database, which is now deleted
+	Filename  string    `json:"filename,omitempty"` // the name of the file used to create the secret to save as a file
+	IsBase64  bool      `json:"is_base64"`          // if the secret is base64 encoded data
+	Created   time.Time `json:"created"`            // the timestamp the secret was created
+	Accesses  int       `json:"accesses"`           // the number of times the secret has been accessed
+	Destroyed bool      `json:"destroyed"`          // if the secret was destroyed after the fetch
 }
 
 type DestroySecretReply struct {

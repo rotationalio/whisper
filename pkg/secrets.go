@@ -106,7 +106,7 @@ func (s *Server) FetchSecret(c *gin.Context) {
 	log.Debug().Bool("authorization", password != "").Msg("beginning fetch")
 
 	// Attempt to retrieve the secret from the database
-	secret, err := meta.Fetch(context.TODO(), password)
+	secret, destroyed, err := meta.Fetch(context.TODO(), password)
 	if err != nil {
 		switch err {
 		case ErrSecretNotFound:
@@ -122,11 +122,12 @@ func (s *Server) FetchSecret(c *gin.Context) {
 
 	// Create the secret reply
 	rep := v1.FetchSecretReply{
-		Secret:   secret,
-		Filename: meta.Filename,
-		IsBase64: meta.IsBase64,
-		Created:  meta.Created,
-		Accesses: meta.Retrievals,
+		Secret:    secret,
+		Filename:  meta.Filename,
+		IsBase64:  meta.IsBase64,
+		Created:   meta.Created,
+		Accesses:  meta.Retrievals,
+		Destroyed: destroyed,
 	}
 
 	// Return the successful reply

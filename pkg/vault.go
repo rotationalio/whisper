@@ -222,12 +222,14 @@ func (s *SecretContext) New(ctx context.Context, secret string) (err error) {
 
 // Fetch loads the metadata into the context, then determines if a password is required
 // and validates the password using the derived key algorithm. If the secret metadata is
-// still valid then it returns the secret, otherwise it returns not found. The metadata
-// can still be accessed if it was loaded from the Secret Manager.
-func (s *SecretContext) Fetch(ctx context.Context, password string) (_ string, err error) {
+// still valid then it returns the secret, updating the accesses, otherwise it returns
+// not found. If the secret is invalid after access, it is destroyed. In either case if
+// the secret is invalid before fetch or destroyed after fetch, the destroyed boolean
+// indicates what happened in the function.
+func (s *SecretContext) Fetch(ctx context.Context, password string) (_ string, destroyed bool, err error) {
 	// First fetch the secret metadata
 	if err = s.Load(ctx, false); err != nil {
-		return "", err
+		return "", destroyed, err
 	}
 
 	// Check the secret is valid prior to returning a response (in case a sidechannel
@@ -237,18 +239,18 @@ func (s *SecretContext) Fetch(ctx context.Context, password string) (_ string, e
 		if err = s.Destroy(ctx, password); err != nil {
 			log.Error().Err(err).Msg("could not destroy invalid secret")
 		}
-		return "", ErrSecretNotFound
+		return "", true, ErrSecretNotFound
 	}
 
 	// Check if the password is required and if so, if it matches the derived key.
 	if err = s.VerifyPassword(password); err != nil {
-		return "", err
+		return "", destroyed, err
 	}
 
 	// Fetch the latest version of the secret
 	var secret []byte
 	if secret, err = s.LatestVersion(ctx, SuffixSecret); err != nil {
-		return "", err
+		return "", destroyed, err
 	}
 
 	// Update the metadata with the access information
@@ -258,12 +260,12 @@ func (s *SecretContext) Fetch(ctx context.Context, password string) (_ string, e
 	if s.Valid() {
 		var payload []byte
 		if payload, err = json.Marshal(s); err != nil {
-			return "", fmt.Errorf("could not marshal secret context: %s", err)
+			return "", destroyed, fmt.Errorf("could not marshal secret context: %s", err)
 		}
 
 		// Update the metadata with the new version
 		if err = s.AddVersion(ctx, SuffixMetadata, payload); err != nil {
-			return "", fmt.Errorf("could not update metadata: %s", err)
+			return "", destroyed, fmt.Errorf("could not update metadata: %s", err)
 		}
 	} else {
 		// Don't return the error in this case because the secret will eventually expire
@@ -271,9 +273,10 @@ func (s *SecretContext) Fetch(ctx context.Context, password string) (_ string, e
 		if err = s.Destroy(ctx, password); err != nil {
 			log.Error().Err(err).Msg("could not destroy invalid secret after access")
 		}
+		destroyed = true
 	}
 
-	return string(secret), nil
+	return string(secret), destroyed, nil
 }
 
 // Destroy both the secret metadata and the secret unless the password is incorrect
