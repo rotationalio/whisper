@@ -22,10 +22,8 @@ import (
 )
 
 func init() {
-	zerolog.TimeFieldFormat = zerolog.TimeFormatUnix
-	log.Logger = log.Output(zerolog.ConsoleWriter{Out: os.Stderr})
-
 	// Initialize zerolog with GCP logging requirements
+	log.Logger = log.Output(zerolog.ConsoleWriter{Out: os.Stderr})
 	zerolog.TimeFieldFormat = time.RFC3339
 	zerolog.TimestampFieldName = logger.GCPFieldKeyTime
 	zerolog.MessageFieldName = logger.GCPFieldKeyMsg

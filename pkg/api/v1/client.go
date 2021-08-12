@@ -13,7 +13,7 @@ import (
 )
 
 func New(endpoint string) (_ Service, err error) {
-	c := &api{
+	c := &APIv1{
 		client: &http.Client{
 			Transport:     nil,
 			CheckRedirect: nil,
@@ -27,17 +27,20 @@ func New(endpoint string) (_ Service, err error) {
 	return c, nil
 }
 
-// API implements the Service interface.
+// APIv1 implements the Service interface.
 // TODO: add redirect check that ensures the client only accesses v1 routes.
-type api struct {
+type APIv1 struct {
 	endpoint *url.URL
 	client   *http.Client
 }
 
+// Ensure that the api implements the Service interface
+var _ Service = &APIv1{}
+
 // NewRequest creates an http.Request with the specified context and method, resolving
 // the path to the root endpoint of the API (e.g. /v1) and serializes the data to JSON.
 // This method also sets the default headers of all whisper client requests.
-func (s api) NewRequest(ctx context.Context, method, path string, data interface{}) (req *http.Request, err error) {
+func (s APIv1) NewRequest(ctx context.Context, method, path string, data interface{}) (req *http.Request, err error) {
 	// Resolve the URL reference from the path
 	endpoint := s.endpoint.ResolveReference(&url.URL{Path: path})
 
@@ -68,7 +71,7 @@ func (s api) NewRequest(ctx context.Context, method, path string, data interface
 
 // Do executes an http request against the server, performs error checking, and
 // deserializes the response data into the specified struct if requested.
-func (s api) Do(req *http.Request, data interface{}, checkStatus bool) (rep *http.Response, err error) {
+func (s APIv1) Do(req *http.Request, data interface{}, checkStatus bool) (rep *http.Response, err error) {
 	if rep, err = s.client.Do(req); err != nil {
 		return rep, fmt.Errorf("could not execute request: %s", err)
 	}
@@ -96,7 +99,7 @@ func (s api) Do(req *http.Request, data interface{}, checkStatus bool) (rep *htt
 	return rep, nil
 }
 
-func (s api) Status(ctx context.Context) (out *StatusReply, err error) {
+func (s APIv1) Status(ctx context.Context) (out *StatusReply, err error) {
 	//  Make the HTTP request
 	var req *http.Request
 	if req, err = s.NewRequest(ctx, http.MethodGet, "/v1/status", nil); err != nil {
@@ -124,7 +127,7 @@ func (s api) Status(ctx context.Context) (out *StatusReply, err error) {
 	return out, nil
 }
 
-func (s api) CreateSecret(ctx context.Context, in *CreateSecretRequest) (out *CreateSecretReply, err error) {
+func (s APIv1) CreateSecret(ctx context.Context, in *CreateSecretRequest) (out *CreateSecretReply, err error) {
 	//  Make the HTTP request
 	var req *http.Request
 	if req, err = s.NewRequest(ctx, http.MethodPost, "/v1/secrets", in); err != nil {
@@ -140,7 +143,7 @@ func (s api) CreateSecret(ctx context.Context, in *CreateSecretRequest) (out *Cr
 	return out, nil
 }
 
-func (s api) FetchSecret(ctx context.Context, token, password string) (out *FetchSecretReply, err error) {
+func (s APIv1) FetchSecret(ctx context.Context, token, password string) (out *FetchSecretReply, err error) {
 	//  Make the HTTP request
 	var req *http.Request
 	if req, err = s.NewRequest(ctx, http.MethodGet, fmt.Sprintf("/v1/secrets/%s", token), nil); err != nil {
@@ -161,7 +164,7 @@ func (s api) FetchSecret(ctx context.Context, token, password string) (out *Fetc
 	return out, nil
 }
 
-func (s api) DestroySecret(ctx context.Context, token, password string) (out *DestroySecretReply, err error) {
+func (s APIv1) DestroySecret(ctx context.Context, token, password string) (out *DestroySecretReply, err error) {
 	//  Make the HTTP request
 	var req *http.Request
 	if req, err = s.NewRequest(ctx, http.MethodDelete, fmt.Sprintf("/v1/secrets/%s", token), nil); err != nil {
