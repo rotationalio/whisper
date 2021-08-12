@@ -55,7 +55,7 @@ func New(conf config.GoogleConfig) (sm *SecretManager, err error) {
 // path composed by the project name as well as the RPC client.
 type SecretManager struct {
 	parent string
-	client *secretmanager.Client
+	client secretManagerClient
 }
 
 // With extracts a secret context with the information required to fetch a secret from
