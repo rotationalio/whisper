@@ -1,4 +1,4 @@
-package whisper
+package vault
 
 import (
 	"context"
@@ -9,6 +9,7 @@ import (
 
 	secretmanager "cloud.google.com/go/secretmanager/apiv1"
 	"github.com/rotationalio/whisper/pkg/config"
+	"github.com/rotationalio/whisper/pkg/passwd"
 	"github.com/rs/zerolog/log"
 	smpb "google.golang.org/genproto/googleapis/cloud/secretmanager/v1"
 	"google.golang.org/grpc/codes"
@@ -33,10 +34,10 @@ var (
 	ErrNotLoaded        = errors.New("secret context needs to be loaded")
 )
 
-// NewSecretManager creates and returns a client to access the Google Secret Manager.
+// New creates and returns a client to access the Google Secret Manager.
 // This function requires the $GOOGLE_APPLICATION_CREDENTIALS environment variable to
 // be set, which specifies the JSON path to the service account credentials.
-func NewSecretManager(conf config.GoogleConfig) (sm *SecretManager, err error) {
+func New(conf config.GoogleConfig) (sm *SecretManager, err error) {
 	sm = &SecretManager{parent: fmt.Sprintf("projects/%s", conf.Project)}
 
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
@@ -147,7 +148,7 @@ func (s *SecretContext) SetPassword(password string) (err error) {
 	}
 
 	// Otherwise create the derived key for the password.
-	if s.Password, err = CreateDerivedKey(password); err != nil {
+	if s.Password, err = passwd.CreateDerivedKey(password); err != nil {
 		return err
 	}
 	return nil
@@ -530,7 +531,7 @@ func (s *SecretContext) VerifyPassword(password string) (err error) {
 		}
 
 		var verified bool
-		if verified, err = VerifyDerivedKey(s.Password, password); err != nil {
+		if verified, err = passwd.VerifyDerivedKey(s.Password, password); err != nil {
 			return err
 		}
 		if !verified {

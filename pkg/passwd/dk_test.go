@@ -1,9 +1,9 @@
-package whisper_test
+package passwd_test
 
 import (
 	"testing"
 
-	. "github.com/rotationalio/whisper/pkg"
+	. "github.com/rotationalio/whisper/pkg/passwd"
 	"github.com/stretchr/testify/require"
 )
 
