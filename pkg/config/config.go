@@ -31,6 +31,7 @@ type Config struct {
 type GoogleConfig struct {
 	Credentials string `envconfig:"GOOGLE_APPLICATION_CREDENTIALS" required:"false"`
 	Project     string `envconfig:"GOOGLE_PROJECT_NAME" required:"true"`
+	Testing     bool   `split_words:"true" default:"false"`
 }
 
 // New creates a new Config object, loading environment variables and defaults.
@@ -45,6 +46,11 @@ func New() (_ Config, err error) {
 		if port := os.Getenv("PORT"); port != "" {
 			conf.BindAddr = ":" + port
 		}
+	}
+
+	// If mode is testing, then google.testing is true, even if it is explicitly set as false.
+	if conf.Mode == gin.TestMode {
+		conf.Google.Testing = true
 	}
 
 	// Extra validation of the configuration

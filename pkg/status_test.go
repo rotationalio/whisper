@@ -10,7 +10,7 @@ import (
 
 func (s *WhisperTestSuite) TestStatus() {
 	w := httptest.NewRecorder()
-	req, _ := http.NewRequest("GET", "/v1/status", nil)
+	req, _ := http.NewRequest(http.MethodGet, "/v1/status", nil)
 	s.router.ServeHTTP(w, req)
 
 	result := w.Result()

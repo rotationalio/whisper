@@ -7,7 +7,7 @@ import (
 
 func (s *WhisperTestSuite) TestVersionRedirect() {
 	w := httptest.NewRecorder()
-	req, _ := http.NewRequest("GET", "/", nil)
+	req, _ := http.NewRequest(http.MethodGet, "/", nil)
 	s.router.ServeHTTP(w, req)
 
 	result := w.Result()

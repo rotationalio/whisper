@@ -9,6 +9,7 @@ import (
 
 	"github.com/googleapis/gax-go"
 	"github.com/rotationalio/whisper/pkg/config"
+	"github.com/rs/zerolog/log"
 	smpb "google.golang.org/genproto/googleapis/cloud/secretmanager/v1"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -40,6 +41,7 @@ type mockSecret struct {
 }
 
 func (c *mockSecretManagerClient) GetSecret(ctx context.Context, req *smpb.GetSecretRequest, opts ...gax.CallOption) (*smpb.Secret, error) {
+	log.Warn().Str("method", "GetSecret").Msg("mock secret manager called")
 	// Check if secret is in the mock database
 	if secret, ok := c.secrets[req.Name]; ok && secret.Expires.After(time.Now()) {
 		return &smpb.Secret{
@@ -53,6 +55,7 @@ func (c *mockSecretManagerClient) GetSecret(ctx context.Context, req *smpb.GetSe
 }
 
 func (c *mockSecretManagerClient) CreateSecret(ctx context.Context, req *smpb.CreateSecretRequest, opts ...gax.CallOption) (*smpb.Secret, error) {
+	log.Warn().Str("method", "CreateSecret").Msg("mock secret manager called")
 	if req.Parent == "" || req.SecretId == "" {
 		return nil, status.Error(codes.InvalidArgument, "missing parent or secret id")
 	}
@@ -95,6 +98,7 @@ func (c *mockSecretManagerClient) CreateSecret(ctx context.Context, req *smpb.Cr
 }
 
 func (c *mockSecretManagerClient) AddSecretVersion(ctx context.Context, req *smpb.AddSecretVersionRequest, opts ...gax.CallOption) (*smpb.SecretVersion, error) {
+	log.Warn().Str("method", "AddSecretVersion").Msg("mock secret manager called")
 	if req.Parent == "" {
 		return nil, status.Error(codes.InvalidArgument, "missing parent")
 	}
@@ -122,6 +126,7 @@ func (c *mockSecretManagerClient) AddSecretVersion(ctx context.Context, req *smp
 }
 
 func (c *mockSecretManagerClient) AccessSecretVersion(ctx context.Context, req *smpb.AccessSecretVersionRequest, opts ...gax.CallOption) (*smpb.AccessSecretVersionResponse, error) {
+	log.Warn().Str("method", "AccessSecretVersion").Msg("mock secret manager called")
 	if req.Name == "" {
 		return nil, status.Error(codes.InvalidArgument, "missing secret version name")
 	}
@@ -165,6 +170,7 @@ func (c *mockSecretManagerClient) AccessSecretVersion(ctx context.Context, req *
 }
 
 func (c *mockSecretManagerClient) DeleteSecret(ctx context.Context, req *smpb.DeleteSecretRequest, opts ...gax.CallOption) error {
+	log.Warn().Str("method", "DeleteSecret").Msg("mock secret manager called")
 	if req.Name == "" {
 		return status.Error(codes.InvalidArgument, "missing secret name")
 	}

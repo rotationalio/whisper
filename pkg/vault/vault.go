@@ -38,6 +38,12 @@ var (
 // This function requires the $GOOGLE_APPLICATION_CREDENTIALS environment variable to
 // be set, which specifies the JSON path to the service account credentials.
 func New(conf config.GoogleConfig) (sm *SecretManager, err error) {
+	if conf.Testing {
+		// If we're in testing mode, use a mock rather than the actual secret manager
+		log.Warn().Msg("using mock secret manager")
+		return NewMock(conf)
+	}
+
 	sm = &SecretManager{parent: fmt.Sprintf("projects/%s", conf.Project)}
 
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
