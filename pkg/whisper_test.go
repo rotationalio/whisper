@@ -2,6 +2,7 @@ package whisper_test
 
 import (
 	"net/http"
+	"net/http/httptest"
 	"os"
 	"testing"
 
@@ -82,6 +83,37 @@ func TestWhisper(t *testing.T) {
 
 func (s *WhisperTestSuite) TestGinMode() {
 	s.Equal(gin.TestMode, gin.Mode())
+}
+
+func (s *WhisperTestSuite) TestCORS() {
+	// We've been having some problems with CORS in the front-end; this test helps
+	// ensure that our CORS configuration is correct on the server side.
+
+	// Run an httptest server rather than use the httptest recorder
+	server := httptest.NewServer(s.router)
+	defer server.Close()
+
+	client := &http.Client{}
+	req, err := http.NewRequest(http.MethodOptions, server.URL+"/v1/status", nil)
+	s.NoError(err)
+
+	// Add origin and headers that we want to test
+	// TODO: loop over multiple origins (note this CORS policy is temporary)
+	req.Header.Add("Origin", "http://localhost:3000")
+	req.Header.Add("Content-Type", "application/json")
+	req.Header.Add("Content-Length", "0")
+	req.Header.Add("Authorization", "Bearer c2VjcmV0cGFzc3dvcmQ=")
+
+	rep, err := client.Do(req)
+	s.NoError(err)
+
+	// The Access-Control-Allow-Origin should match or be * if the CORS policy is valid
+	origin := rep.Header.Get("Access-Control-Allow-Origin")
+	s.True(origin == "http://localhost:3000" || origin == "*")
+
+	// The Access-Control-Allow-Headers should match our sent headers
+	headers := rep.Header.Get("Access-Control-Allow-Headers")
+	s.Equal("Origin,Content-Length,Content-Type,Authorization", headers)
 }
 
 // Returns the current environment for the specified keys, or if no keys are specified
