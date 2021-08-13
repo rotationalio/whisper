@@ -14,6 +14,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	v1 "github.com/rotationalio/whisper/pkg/api/v1"
+	"github.com/rotationalio/whisper/pkg/vault"
 	"github.com/rs/zerolog/log"
 )
 
@@ -78,7 +79,7 @@ func (s *Server) CreateSecret(c *gin.Context) {
 
 	// Create the secret in the vault.
 	if err = meta.New(context.TODO(), req.Secret); err != nil {
-		if errors.Is(err, ErrTimeToLive) {
+		if errors.Is(err, vault.ErrTimeToLive) {
 			c.JSON(http.StatusBadRequest, ErrorResponse(err))
 			return
 		}
@@ -109,9 +110,9 @@ func (s *Server) FetchSecret(c *gin.Context) {
 	secret, destroyed, err := meta.Fetch(context.TODO(), password)
 	if err != nil {
 		switch err {
-		case ErrSecretNotFound:
+		case vault.ErrSecretNotFound:
 			c.JSON(http.StatusNotFound, ErrorResponse(err))
-		case ErrNotAuthorized:
+		case vault.ErrNotAuthorized:
 			c.JSON(http.StatusUnauthorized, ErrorResponse(err))
 		default:
 			log.Error().Err(err).Msg("could not fetch secret")
@@ -148,9 +149,9 @@ func (s *Server) DestroySecret(c *gin.Context) {
 	err := meta.Destroy(context.TODO(), password)
 	if err != nil {
 		switch err {
-		case ErrSecretNotFound:
+		case vault.ErrSecretNotFound:
 			c.JSON(http.StatusNotFound, ErrorResponse(err))
-		case ErrNotAuthorized:
+		case vault.ErrNotAuthorized:
 			c.JSON(http.StatusUnauthorized, ErrorResponse(err))
 		default:
 			log.Error().Err(err).Msg("could not destroy secret")

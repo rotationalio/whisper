@@ -1,4 +1,4 @@
-package whisper
+package vault
 
 import (
 	"context"
@@ -9,6 +9,7 @@ import (
 
 	secretmanager "cloud.google.com/go/secretmanager/apiv1"
 	"github.com/rotationalio/whisper/pkg/config"
+	"github.com/rotationalio/whisper/pkg/passwd"
 	"github.com/rs/zerolog/log"
 	smpb "google.golang.org/genproto/googleapis/cloud/secretmanager/v1"
 	"google.golang.org/grpc/codes"
@@ -33,10 +34,16 @@ var (
 	ErrNotLoaded        = errors.New("secret context needs to be loaded")
 )
 
-// NewSecretManager creates and returns a client to access the Google Secret Manager.
+// New creates and returns a client to access the Google Secret Manager.
 // This function requires the $GOOGLE_APPLICATION_CREDENTIALS environment variable to
 // be set, which specifies the JSON path to the service account credentials.
-func NewSecretManager(conf config.GoogleConfig) (sm *SecretManager, err error) {
+func New(conf config.GoogleConfig) (sm *SecretManager, err error) {
+	if conf.Testing {
+		// If we're in testing mode, use a mock rather than the actual secret manager
+		log.Warn().Msg("using mock secret manager")
+		return NewMock(conf)
+	}
+
 	sm = &SecretManager{parent: fmt.Sprintf("projects/%s", conf.Project)}
 
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
@@ -54,7 +61,7 @@ func NewSecretManager(conf config.GoogleConfig) (sm *SecretManager, err error) {
 // path composed by the project name as well as the RPC client.
 type SecretManager struct {
 	parent string
-	client *secretmanager.Client
+	client secretManagerClient
 }
 
 // With extracts a secret context with the information required to fetch a secret from
@@ -147,7 +154,7 @@ func (s *SecretContext) SetPassword(password string) (err error) {
 	}
 
 	// Otherwise create the derived key for the password.
-	if s.Password, err = CreateDerivedKey(password); err != nil {
+	if s.Password, err = passwd.CreateDerivedKey(password); err != nil {
 		return err
 	}
 	return nil
@@ -530,7 +537,7 @@ func (s *SecretContext) VerifyPassword(password string) (err error) {
 		}
 
 		var verified bool
-		if verified, err = VerifyDerivedKey(s.Password, password); err != nil {
+		if verified, err = passwd.VerifyDerivedKey(s.Password, password); err != nil {
 			return err
 		}
 		if !verified {

@@ -6,27 +6,26 @@ import (
 	"net/http/httptest"
 
 	whisper "github.com/rotationalio/whisper/pkg"
-	"github.com/stretchr/testify/require"
 )
 
 func (s *WhisperTestSuite) TestStatus() {
 	w := httptest.NewRecorder()
-	req, _ := http.NewRequest("GET", "/v1/status", nil)
+	req, _ := http.NewRequest(http.MethodGet, "/v1/status", nil)
 	s.router.ServeHTTP(w, req)
 
 	result := w.Result()
 	defer result.Body.Close()
 
-	require.Equal(s.T(), http.StatusOK, w.Code)
-	require.Equal(s.T(), "application/json; charset=utf-8", result.Header.Get("Content-Type"))
+	s.Equal(http.StatusOK, result.StatusCode)
+	s.Equal("application/json; charset=utf-8", result.Header.Get("Content-Type"))
 
 	var data map[string]interface{}
 	err := json.NewDecoder(result.Body).Decode(&data)
-	require.NoError(s.T(), err)
+	s.NoError(err)
 
-	require.Contains(s.T(), data, "status")
-	require.Equal(s.T(), "ok", data["status"])
-	require.Contains(s.T(), data, "version")
-	require.Equal(s.T(), whisper.Version(), data["version"])
+	s.Contains(data, "status")
+	s.Equal("ok", data["status"])
+	s.Contains(data, "version")
+	s.Equal(whisper.Version(), data["version"])
 
 }

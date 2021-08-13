@@ -1,4 +1,4 @@
-package whisper
+package passwd
 
 import (
 	"bytes"
@@ -73,7 +73,7 @@ func ParseDerivedKey(encoded string) (dk, salt []byte, time, memory uint32, thre
 
 	// check the algorithm
 	if parts[1] != dkAlg {
-		return nil, nil, 0, 0, 0, fmt.Errorf("current code only works with the the dk protcol %q not %q", dkAlg, parts[2])
+		return nil, nil, 0, 0, 0, fmt.Errorf("current code only works with the the dk protcol %q not %q", dkAlg, parts[1])
 	}
 
 	// check the version

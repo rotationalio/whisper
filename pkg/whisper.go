@@ -16,15 +16,14 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/rotationalio/whisper/pkg/config"
 	"github.com/rotationalio/whisper/pkg/logger"
+	"github.com/rotationalio/whisper/pkg/vault"
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
 )
 
 func init() {
-	zerolog.TimeFieldFormat = zerolog.TimeFormatUnix
-	log.Logger = log.Output(zerolog.ConsoleWriter{Out: os.Stderr})
-
 	// Initialize zerolog with GCP logging requirements
+	log.Logger = log.Output(zerolog.ConsoleWriter{Out: os.Stderr})
 	zerolog.TimeFieldFormat = time.RFC3339
 	zerolog.TimestampFieldName = logger.GCPFieldKeyTime
 	zerolog.MessageFieldName = logger.GCPFieldKeyMsg
@@ -59,13 +58,11 @@ func New(conf config.Config) (s *Server, err error) {
 	s = &Server{conf: conf, errc: make(chan error, 1), healthy: false}
 
 	// Create the vault to store secrets in (Google Secret Manager)
-	// TODO: if we're in test mode, create a mock secret manager
-	if conf.Mode != gin.TestMode {
-		if s.vault, err = NewSecretManager(conf.Google); err != nil {
-			return nil, err
-		}
-		log.Debug().Msg("connected to google secret manager")
+	// Note that if conf.Google.Testing is true, a mock secret manager will be created
+	if s.vault, err = vault.New(conf.Google); err != nil {
+		return nil, err
 	}
+	log.Debug().Msg("connected to google secret manager")
 
 	// Create the router
 	gin.SetMode(conf.Mode)
@@ -76,7 +73,7 @@ func New(conf config.Config) (s *Server, err error) {
 	// Add CORS configuration
 	// TODO: configure origins from the environment rather than hard-coding
 	s.router.Use(cors.New(cors.Config{
-        AllowAllOrigins:  true,
+		AllowAllOrigins:  true,
 		AllowMethods:     []string{"GET", "POST", "PUT", "PATCH", "DELETE", "HEAD"},
 		AllowHeaders:     []string{"Origin", "Content-Length", "Content-Type"},
 		AllowCredentials: true,
@@ -103,12 +100,12 @@ func New(conf config.Config) (s *Server, err error) {
 
 type Server struct {
 	sync.RWMutex
-	conf    config.Config  // configuration of the API server
-	srv     *http.Server   // handle to a custom http server with specified API defaults
-	router  *gin.Engine    // the http handler and associated middlware
-	vault   *SecretManager // storage for all secrets the whisper application manages
-	healthy bool           // application state of the server
-	errc    chan error     // synchronize shutdown gracefully
+	conf    config.Config        // configuration of the API server
+	srv     *http.Server         // handle to a custom http server with specified API defaults
+	router  *gin.Engine          // the http handler and associated middlware
+	vault   *vault.SecretManager // storage for all secrets the whisper application manages
+	healthy bool                 // application state of the server
+	errc    chan error           // synchronize shutdown gracefully
 }
 
 func (s *Server) Serve() (err error) {

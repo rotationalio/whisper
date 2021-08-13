@@ -8,8 +8,14 @@ import (
 	"github.com/gin-gonic/gin"
 	. "github.com/rotationalio/whisper/pkg"
 	"github.com/rotationalio/whisper/pkg/config"
+	"github.com/rs/zerolog"
 	"github.com/stretchr/testify/suite"
 )
+
+func init() {
+	// No logging output during tests
+	zerolog.SetGlobalLevel(zerolog.PanicLevel)
+}
 
 var testEnv = map[string]string{
 	"WHISPER_MAINTENANCE":            "false",
@@ -41,6 +47,12 @@ func (s *WhisperTestSuite) SetupSuite() {
 	var err error
 	s.conf, err = config.New()
 	s.NoError(err)
+
+	// No logging output during tests
+	s.conf.LogLevel = config.LogLevelDecoder(zerolog.PanicLevel)
+
+	// Use mock Google Secret Manager for tests
+	s.conf.Google.Testing = true
 
 	// Create the api, which will setup both the routes and the database
 	s.api, err = New(s.conf)
