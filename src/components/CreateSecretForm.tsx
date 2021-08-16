@@ -4,7 +4,7 @@ import { Field, Form, Formik } from "formik";
 import { Autocomplete, AutocompleteRenderInputParams } from "formik-material-ui-lab";
 import { TextField as MuiTextField } from "@material-ui/core";
 import { Lifetime } from "utils/interfaces";
-import { useEffect } from "react";
+import React, { useEffect } from "react";
 import { CreateSecretFormProps } from "types/CreateSecretFormProps";
 import { preventNonNumericalInput } from "utils/utils";
 import { useStyles } from "styles/createSecretFormStyles";
@@ -87,7 +87,7 @@ const CreateSecretForm: React.FC<CreateSecretFormProps> = props => {
 								pattern="[0-9]*"
 								InputProps={{ inputProps: { min: 1, max: 108 } }}
 								onKeyPress={preventNonNumericalInput}
-								onInput={(e: any) => {
+								onInput={(e: React.ChangeEvent<HTMLInputElement>) => {
 									e.target.value = Math.max(-1, parseInt(e.target.value)).toString().slice(0, 3);
 								}}
 							/>

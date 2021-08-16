@@ -1,11 +1,15 @@
 import { makeStyles, Typography } from "@material-ui/core";
 
+type BackgroundProps = {
+	color: string;
+};
+
 const useStyles = makeStyles({
 	root: {
 		height: "0.5rem",
 		width: "0.5rem",
 		display: "inline-block",
-		background: (props: any) => props.color,
+		background: (props: BackgroundProps) => props.color,
 		borderRadius: "50%",
 		marginInline: ".3rem"
 	}

@@ -32,13 +32,14 @@
     "scripts": {
         "start": "react-scripts start",
         "build": "react-scripts build",
-        "test": "react-scripts test",
+        "test": "react-scripts test --coverage --watchAll=false",
         "eject": "react-scripts eject",
         "lint": "npx eslint \"**/*.{ts, tsx}\"",
         "lint:fix": "npx eslint \"**/*.{ts, tsx}\" --fix",
         "prettier:fix": "prettier --write \"**/*.{ts, tsx}\"",
         "prettier": "npx prettier \"**/*.{ts, tsx}\"",
         "prettier:write": "npx prettier -w \"**/*.{ts, tsx}\"",
+				"validate": "npm run lint:fix && npm run prettier:write && npm run test",
         "commit": "cz",
         "precommit": "npm run lint && npm run prettier:fix",
         "release": "standard-version"

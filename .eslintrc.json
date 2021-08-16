@@ -39,7 +39,7 @@
         "@typescript-eslint/no-use-before-define": ["error"],
         "react/jsx-filename-extension": [ "warn", {"extensions": [".ts",".tsx"]} ],
         "no-shadow": "off",
-        "no-console":1,
+        "no-console":0,
         "@typescript-eslint/no-shadow": ["error"],
 				"react/prop-types": "off"
     },
