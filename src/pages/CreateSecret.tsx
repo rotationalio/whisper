@@ -5,20 +5,11 @@ import createSecret from "services/createSecret";
 import { Secret } from "utils/interfaces/Secret";
 import { FormikHelpers, FormikValues } from "formik";
 import { AxiosError, AxiosResponse } from "axios";
-import * as Yup from "yup";
 import { useStyles } from "styles/createSecretStyles";
 import { Alert, Color } from "@material-ui/lab";
 import { Lifetime } from "utils/interfaces";
 import { useModal } from "contexts/modalContext";
 import { ModalType } from "utils/enums/modal";
-
-const CreateSecretSchema = Yup.object().shape({
-	secret: Yup.string().required("You must add a secret"),
-	password: Yup.string(),
-	lifetime: Yup.object().shape({ value: Yup.string(), label: Yup.string() }).nullable(),
-	accessType: Yup.boolean(),
-	accesses: Yup.number().max(108, "The max number is 108")
-});
 
 interface Values {
 	secret: string;
@@ -88,11 +79,7 @@ const CreateSecret: React.FC = () => {
 					>
 						{message.message}
 					</Alert>
-					<CreateSecretForm
-						onSubmit={handleSubmit}
-						initialValues={initialValues}
-						validationSchema={CreateSecretSchema}
-					/>
+					<CreateSecretForm onSubmit={handleSubmit} initialValues={initialValues} />
 				</Grid>
 			</Grid>
 		</div>

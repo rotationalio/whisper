@@ -8,6 +8,7 @@ import { useEffect } from "react";
 import { CreateSecretFormProps } from "types/CreateSecretFormProps";
 import { preventNonNumericalInput } from "utils/utils";
 import { useStyles } from "styles/createSecretFormStyles";
+import * as Yup from "yup";
 
 const options: Lifetime[] = [
 	{ value: "5m", label: "5 min" },
@@ -22,11 +23,19 @@ const options: Lifetime[] = [
 	{ value: "168h", label: "7 days" }
 ];
 
+const CreateSecretSchema = Yup.object().shape({
+	secret: Yup.string().required("You must add a secret"),
+	password: Yup.string(),
+	lifetime: Yup.object().shape({ value: Yup.string(), label: Yup.string() }).nullable(),
+	accessType: Yup.boolean(),
+	accesses: Yup.number().max(108, "The max number is 108")
+});
+
 const CreateSecretForm: React.FC<CreateSecretFormProps> = props => {
 	const classes = useStyles();
 
 	return (
-		<Formik initialValues={props.initialValues} validationSchema={props.validationSchema} onSubmit={props.onSubmit}>
+		<Formik initialValues={props.initialValues} validationSchema={CreateSecretSchema} onSubmit={props.onSubmit}>
 			{({ isSubmitting, errors, values, setFieldValue }) => {
 				useEffect(() => {
 					if (values.accessType) {
@@ -46,6 +55,7 @@ const CreateSecretForm: React.FC<CreateSecretFormProps> = props => {
 								label="Type your secret here"
 								variant="outlined"
 								placeholder="Type your secret here"
+								data-testid="secret"
 								required
 								multiline
 								minRows={10}
