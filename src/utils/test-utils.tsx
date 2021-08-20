@@ -3,6 +3,7 @@ import { render as rtlRender } from "@testing-library/react";
 import { Route, Router } from "react-router-dom";
 // import { render } from "@testing-library/react";
 import { createMemoryHistory, MemoryHistory } from "history";
+import { ServerStatusProvider } from "contexts/serverStatusContext";
 
 // test utils file
 export function render(
@@ -27,9 +28,11 @@ export function renderWithRouterMatch(
 ): any {
 	return {
 		...rtlRender(
-			<Router history={history}>
-				<Route path={path}>{ui}</Route>
-			</Router>
+			<ServerStatusProvider>
+				<Router history={history}>
+					<Route path={path}>{ui}</Route>
+				</Router>
+			</ServerStatusProvider>
 		)
 	};
 }

@@ -10,6 +10,7 @@ import { Alert, Color } from "@material-ui/lab";
 import { Lifetime } from "utils/interfaces";
 import { useModal } from "contexts/modalContext";
 import { ModalType } from "utils/enums/modal";
+import Layout from "components/Layout";
 
 interface Values {
 	secret: string;
@@ -68,20 +69,22 @@ const CreateSecret: React.FC = () => {
 	}
 
 	return (
-		<div className={classes.root}>
-			<Grid container alignItems="center" className={classes.h__full}>
-				<Grid item sm={12} md={12} className={classes.w__full}>
-					<Alert
-						severity={message.status}
-						className={classes.alert}
-						style={{ visibility: message.message ? "visible" : "hidden" }}
-					>
-						{message.message}
-					</Alert>
-					<CreateSecretForm onSubmit={handleSubmit} initialValues={initialValues} />
+		<Layout>
+			<div className={classes.root}>
+				<Grid container alignItems="center" className={classes.h__full}>
+					<Grid item sm={12} md={12} className={classes.w__full}>
+						<Alert
+							severity={message.status}
+							className={classes.alert}
+							style={{ visibility: message.message ? "visible" : "hidden" }}
+						>
+							{message.message}
+						</Alert>
+						<CreateSecretForm onSubmit={handleSubmit} initialValues={initialValues} />
+					</Grid>
 				</Grid>
-			</Grid>
-		</div>
+			</div>
+		</Layout>
 	);
 };
 

@@ -1,9 +1,10 @@
 import { render } from "@testing-library/react";
 import Footer from "components/Footer";
+import { ServerStatusProvider } from "contexts/serverStatusContext";
 
 describe("Footer", () => {
 	it("should render correctly", () => {
-		const { asFragment } = render(<Footer />);
+		const { asFragment } = render(<Footer />, { wrapper: ServerStatusProvider });
 
 		expect(asFragment()).toMatchInlineSnapshot(`
 		<DocumentFragment>
@@ -29,7 +30,7 @@ describe("Footer", () => {
 		        aria-label="add"
 		        class="MuiBox-root MuiBox-root-4"
 		        style="cursor: pointer;"
-		        title="connected to "
+		        title="connected to undefined"
 		      >
 		        <span
 		          class="MuiTypography-root MuiTypography-caption"
@@ -43,7 +44,7 @@ describe("Footer", () => {
 		        <span
 		          class="MuiTypography-root MuiTypography-caption"
 		        >
-		          version: 
+		          version: 0.0.0
 		        </span>
 		      </div>
 		    </div>

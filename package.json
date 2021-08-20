@@ -32,7 +32,7 @@
     "scripts": {
         "start": "react-scripts start",
         "build": "react-scripts build",
-        "test": "react-scripts test --coverage --watchAll=false",
+        "test": "react-scripts test --coverage --watchAll=false --updateSnapshot",
         "eject": "react-scripts eject",
         "lint": "npx eslint \"**/*.{ts, tsx}\"",
         "lint:fix": "npx eslint \"**/*.{ts, tsx}\" --fix",
