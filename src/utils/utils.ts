@@ -18,13 +18,25 @@ function defaultEndpointPrefix(): string {
 	switch (process.env.NODE_ENV) {
 		case "production":
 			return "https://whisper.rotational.dev/v1";
+		case "development":
+			return "http://localhost:3000";
 		default:
 			throw new Error("Could not identify the api prefix");
 	}
 }
 
 function generateSecretLink(token: string): string {
-	return `${defaultEndpointPrefix()}/secrets/${token}`;
+	return process.env.NODE_ENV === "development"
+		? `http://localhost:3000/secret/${token}`
+		: `${defaultEndpointPrefix()}/secret/${token}`;
 }
 
-export { generateSecretLink, defaultEndpointPrefix, preventNonNumericalInput };
+function stringToBase64(str: string): string {
+	return Buffer.from(str).toString("base64");
+}
+
+function selectOnFocus(e: React.FocusEvent<HTMLTextAreaElement>): void {
+	e.target.select();
+}
+
+export { generateSecretLink, defaultEndpointPrefix, preventNonNumericalInput, stringToBase64, selectOnFocus };

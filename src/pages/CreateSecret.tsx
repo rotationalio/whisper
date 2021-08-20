@@ -57,7 +57,6 @@ const CreateSecret: React.FC = () => {
 				dispatch({ type: ModalType.SHOW_MODAL, payload: response.data });
 			},
 			(error: AxiosError) => {
-				console.error("[error when creating secret]", error.message);
 				setMessage({ status: "error", message: error.message });
 				setTimeout(() => {
 					setMessage({ status: undefined, message: undefined });
