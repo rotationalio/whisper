@@ -6,7 +6,7 @@ on:
 
 jobs:
   release:
-    name: Release on GitHub
+    name: Create CLI Release on GitHub
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Code

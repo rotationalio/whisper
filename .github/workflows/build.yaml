@@ -8,35 +8,23 @@ on:
   pull_request:
 
 jobs:
-  lint:
-    name: Lint
+  api_test:
+    name: API Tests
     runs-on: ubuntu-latest
     steps:
       - name: Set up Go
         uses: actions/setup-go@v2
         with:
           go-version: 1.16
+
+      - name: Checkout Code
+        uses: actions/checkout@v2
 
       - name: Install Staticcheck
         run: go install honnef.co/go/tools/cmd/staticcheck@latest
 
-      - name: Checkout Code
-        uses: actions/checkout@v2
-
       - name: Lint Go Code
         run: staticcheck ./...
-
-  test:
-    name: Test
-    runs-on: ubuntu-latest
-    steps:
-      - name: Set up Go
-        uses: actions/setup-go@v2
-        with:
-          go-version: 1.16
-
-      - name: Checkout Code
-        uses: actions/checkout@v2
 
       - name: Install Dependencies
         run: go version
@@ -51,8 +39,8 @@ jobs:
           token: ${{secrets.CODECOV_TOKEN}}
           file: ./coverage.txt
 
-  build:
-    name: Build
+  api_build:
+    name: API Build
     runs-on: ubuntu-latest
     steps:
       - name: Set up Go
@@ -68,3 +56,60 @@ jobs:
 
       - name: Build
         run: go build ./cmd/...
+
+  web_test:
+    name: Web Tests
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node-version: [14.x, 16.x]
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v2
+
+      - name: Set up Node
+        uses: actions/setup-node@v2
+        with:
+          node-version: 16.x
+          cache: "npm"
+          cache-dependency-path: ./web/package-lock.json
+
+      - name: Install Dependencies
+        working-directory: ./web
+        run: npm install
+
+      - name: Lint React Code
+        working-directory: ./web
+        run: npm run lint
+
+      - name: Run React Tests
+        working-directory: ./web
+        run: npm run test
+
+      - name: Upload Coverage report to CodeCov
+        uses: codecov/codecov-action@v1.0.0
+        with:
+          # Make sure to add to GitHub secrets!
+          token: ${{secrets.CODECOV_TOKEN}}
+
+  web_build:
+    name: Web Build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v2
+
+      - name: Set up Node
+        uses: actions/setup-node@v2
+        with:
+          node-version: 16.x
+          cache: "npm"
+          cache-dependency-path: ./web/package-lock.json
+
+      - name: Install Dependencies
+        working-directory: ./web
+        run: npm install
+
+      - name: Build React Bundle
+        working-directory: ./web
+        run: npm run build
