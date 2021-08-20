@@ -1,8 +1,5 @@
 # WHISPER-UI
 
-![GitHub Actions CI](https://github.com/rotationalio/whisper-ui/actions/workflows/build.yaml/badge.svg?branch=main)
-
-
 This project is the UI side of WHISPER app that aim to manage secret.
 
 This project is currently using [Create React App CLI](https://create-react-app.dev/) version 17.
