@@ -1,3 +1,4 @@
+import NotFound from "pages/NotFound";
 import React, { Suspense } from "react";
 import { Route, Switch } from "react-router-dom";
 
@@ -9,7 +10,8 @@ const AppRouter: React.FC = () => {
 		<Suspense fallback="loading...">
 			<Switch>
 				<Route path="/secret/:token" exact component={ShowSecret} />
-				<Route path="/" component={CreateSecret} />
+				<Route path="/" exact component={CreateSecret} />
+				<Route path="*" component={NotFound} />
 			</Switch>
 		</Suspense>
 	);
