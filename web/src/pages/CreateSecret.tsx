@@ -1,6 +1,5 @@
 import React from "react";
 import { Grid } from "@material-ui/core";
-import CreateSecretForm from "components/CreateSecretForm";
 import createSecret from "services/createSecret";
 import { Secret } from "utils/interfaces/Secret";
 import { FormikValues } from "formik";
@@ -12,7 +11,7 @@ import { useModal } from "contexts/modalContext";
 import { ModalType } from "utils/enums/modal";
 import Layout from "components/Layout";
 import { encodeFileToBase64 } from "utils/utils";
-import { useLocation } from "react-router";
+import CreateSecretFormTabs from "components/CreateSecretFormTabs";
 
 interface Values {
 	secret: string;
@@ -40,8 +39,6 @@ const CreateSecret: React.FC = () => {
 	});
 	const [isLoading, setIsLoading] = React.useState(false);
 	const { dispatch } = useModal();
-	const location = useLocation();
-	const locationState = location.state as { type: "message" | "file" };
 
 	const classes = useStyles();
 
@@ -58,6 +55,8 @@ const CreateSecret: React.FC = () => {
 			filename: values.filename || "",
 			is_base64: values.is_base64 || false
 		};
+
+		console.log("DATA", data);
 
 		createSecret(data).then(
 			(response: AxiosResponse) => {
@@ -89,12 +88,7 @@ const CreateSecret: React.FC = () => {
 						>
 							{message.message}
 						</Alert>
-						<CreateSecretForm
-							type={locationState.type}
-							onSubmit={handleSubmit}
-							initialValues={initialValues}
-							loading={isLoading}
-						/>
+						<CreateSecretFormTabs onSubmit={handleSubmit} initialValues={initialValues} loading={isLoading} />
 					</Grid>
 				</Grid>
 			</div>

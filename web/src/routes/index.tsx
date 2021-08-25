@@ -3,7 +3,6 @@ import { AxiosResponse } from "axios";
 import { useServerStatus } from "contexts/serverStatusContext";
 import MaintainancePage from "pages/MaintainancePage";
 import NotFound from "pages/NotFound";
-import SecretType from "pages/SecretType";
 import { Redirect, Route, Switch } from "react-router-dom";
 import getStatus from "services/status";
 import { Status } from "utils/enums/status";
@@ -29,11 +28,10 @@ const AppRouter: React.FC = () => {
 	return (
 		<Suspense fallback="loading...">
 			<Switch>
-				<Route path="/" exact component={SecretType} />
+				<Route path="/" exact component={CreateSecret} />
 				<Route path="/maintainance" exact component={MaintainancePage} />
 				{status.status === Status.maintainance ? <Redirect to="/maintainance" /> : null}
 				<Route path="/secret/:token" exact component={ShowSecret} />
-				<Route path="/create-secret" exact component={CreateSecret} />
 				<Route path="/not-found" component={NotFound} />
 				<Redirect from="*" to="/not-found" />
 			</Switch>

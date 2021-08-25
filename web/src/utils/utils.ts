@@ -31,7 +31,8 @@ function encodeFileToBase64(file: File): Promise<string | ArrayBuffer | null> {
 		const reader = new FileReader();
 		reader.readAsDataURL(file);
 		reader.onload = () => {
-			resolve(reader.result);
+			const base64 = typeof reader.result === "string" ? reader.result.split(",")[1] : null;
+			resolve(base64);
 		};
 		reader.onerror = error => reject(error);
 	});

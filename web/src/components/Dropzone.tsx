@@ -18,7 +18,7 @@ const baseStyle = {
 	padding: "20px",
 	borderWidth: 2,
 	borderRadius: 2,
-	height: "10rem",
+	height: "175px",
 	borderColor: "#eeeeee",
 	borderStyle: "dashed",
 	backgroundColor: "#fafafa",
