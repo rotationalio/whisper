@@ -1,17 +1,23 @@
 import React from "react";
 import AttachmentIcon from "@material-ui/icons/Attachment";
 import { Box, Button, makeStyles, Theme, Typography } from "@material-ui/core";
+import { formatBytes } from "utils/utils";
+import dayjs from "dayjs";
 
 const useStyles = makeStyles((theme: Theme) => ({
 	container: {
-		position: "absolute",
-		top: "50%",
-		left: "50%",
-		transform: "translate(-50%, -50%)",
 		width: "100%",
 		maxWidth: "500px",
-		background: "#f7f5f5",
-		padding: theme.spacing(2)
+		padding: theme.spacing(2),
+		backgroundColor: theme.palette.background.paper,
+		gap: theme.spacing(4),
+		flexDirection: "column",
+		justifyContent: "center",
+		alignItems: "center",
+		height: "300px",
+		boxShadow: "rgba(0, 0, 0, 0.1) 0px 4px 12px",
+		background: "#f5f7f8",
+		borderRadius: "5px"
 	}
 }));
 
@@ -20,7 +26,7 @@ type ShowFileProps = {
 	uploadedAt?: Date;
 };
 
-const ShowFile: React.FC<ShowFileProps> = ({ file }) => {
+const ShowFile: React.FC<ShowFileProps> = ({ file, uploadedAt }) => {
 	const classes = useStyles();
 
 	const handleDownloadClick = () => {
@@ -38,24 +44,28 @@ const ShowFile: React.FC<ShowFileProps> = ({ file }) => {
 
 	return (
 		<div className={classes.container}>
-			<Box display="flex" alignItems="center" justifyContent="space-between">
-				<div>
-					<AttachmentIcon fontSize="large" />
-				</div>
-				<div>
-					<Typography variant="caption">Name</Typography>
-					<Typography>{file?.name}</Typography>
-				</div>
-				<div>
-					<Typography variant="caption">Size</Typography>
-					<Typography>{`${file?.size && (file?.size / 1024).toFixed(2)} Mb`}</Typography>
-				</div>
-				<div>
-					<Button variant="contained" color="primary" onClick={handleDownloadClick} fullWidth>
-						Download
-					</Button>
-				</div>
+			<Box display="flex" alignItems="center" justifyContent="center" textAlign="center" height="89%">
+				<Box>
+					<div>
+						<AttachmentIcon fontSize="large" />
+					</div>
+					<div>
+						<Typography variant="h6">{file?.name}</Typography>
+					</div>
+					<div>
+						<Typography variant="caption">
+							Uploaded on {dayjs(uploadedAt).format("MMMM D, YYYY")}{" "}
+							<span style={{ fontWeight: "bold", fontSize: "large" }}>·</span>{" "}
+							{`${file?.size && formatBytes(file?.size)}`}
+						</Typography>
+					</div>
+				</Box>
 			</Box>
+			<div>
+				<Button variant="contained" color="primary" onClick={handleDownloadClick} fullWidth>
+					Download
+				</Button>
+			</div>
 		</div>
 	);
 };

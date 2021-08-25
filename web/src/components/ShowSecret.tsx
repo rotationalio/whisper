@@ -21,13 +21,16 @@ const useStyles = makeStyles((theme: Theme) => ({
 	section: {
 		height: "100vh",
 		display: "flex",
+		flexDirection: "column",
+		margin: "0 auto",
 		justifyContent: "center",
 		alignItems: "center",
-		outline: 0
+		outline: 0,
+		maxWidth: "500px",
+		width: "100%"
 	},
 	box: {
-		width: "100%",
-		maxWidth: "500px"
+		width: "100%"
 	},
 	textarea: {
 		width: "100%",
@@ -102,6 +105,20 @@ const ShowSecret: React.FC<ShowSecretProps> = ({ secret, token }) => {
 
 	return (
 		<div className={classes.section}>
+			<Alert
+				severity="warning"
+				style={{
+					margin: "1rem 0",
+					width: "100%",
+					display: secret?.destroyed ? undefined : "none"
+				}}
+			>
+				<AlertTitle>Secret Expired</AlertTitle>
+				<Typography>
+					This is the last time you will be able to access this Secret, it has been destroyed now that you&apos;ve
+					retrieved it.
+				</Typography>
+			</Alert>
 			{secret?.is_base64 ? (
 				<ShowFile file={file} uploadedAt={secret.created} />
 			) : (
@@ -109,13 +126,6 @@ const ShowSecret: React.FC<ShowSecretProps> = ({ secret, token }) => {
 					<Typography variant="h5" gutterBottom>
 						Secret
 					</Typography>
-					<Alert severity="warning" style={{ margin: "1rem 0", display: secret?.destroyed ? undefined : "none" }}>
-						<AlertTitle>Secret Expired</AlertTitle>
-						<Typography>
-							This is the last time you will be able to access this Secret, it has been destroyed now that you&apos;ve
-							retrieved it.
-						</Typography>
-					</Alert>
 					<div>
 						<textarea
 							className={classes.textarea}
