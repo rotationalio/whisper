@@ -1,17 +1,21 @@
 import { render as rtlRender } from "@testing-library/react";
-// import { BrowserRouter } from "react-router-dom";
 import { Route, Router } from "react-router-dom";
-// import { render } from "@testing-library/react";
 import { createMemoryHistory, MemoryHistory } from "history";
 import { ServerStatusProvider } from "contexts/serverStatusContext";
+import { ThemeProvider } from "@material-ui/core";
+import theme from "theme";
 
-// test utils file
 export function render(
-	ui: any,
-	{ route: any = "/", history = createMemoryHistory({ initialEntries: ["secret/"] }) } = {}
-) {
+	ui: React.ReactNode,
+	{ history = createMemoryHistory({ initialEntries: ["secret/"] }) } = {}
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
+): Record<string, any> {
 	return {
-		...rtlRender(<Router history={history}>{ui}</Router>),
+		...rtlRender(
+			<ThemeProvider theme={theme}>
+				<Router history={history}>{ui}</Router>
+			</ThemeProvider>
+		),
 		history
 	};
 }
@@ -25,6 +29,7 @@ interface RenderWithRouterProps {
 export function renderWithRouterMatch(
 	ui: React.ReactNode,
 	{ path = "/", route = "/", history = createMemoryHistory({ initialEntries: [route] }) }: RenderWithRouterProps = {}
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 ): any {
 	return {
 		...rtlRender(

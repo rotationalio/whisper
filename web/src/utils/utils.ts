@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 import { Form } from "formik";
 
 // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
@@ -25,6 +26,34 @@ function defaultEndpointPrefix(): string {
 	}
 }
 
+function encodeFileToBase64(file: File): Promise<string | ArrayBuffer | null> {
+	return new Promise((resolve, reject) => {
+		const reader = new FileReader();
+		reader.readAsDataURL(file);
+		reader.onload = () => {
+			const base64 = typeof reader.result === "string" ? reader.result.split(",")[1] : null;
+			resolve(base64);
+		};
+		reader.onerror = error => reject(error);
+	});
+}
+
+function dataURLtoFile(dataurl: string, filename?: string): File {
+	const fileName = filename || "";
+	const arr = dataurl.split(",");
+	const mime = (arr[0].match(/:(.*?);/) as string[])[1];
+	const bstr = atob(arr[1]);
+
+	let n = bstr.length;
+	const u8arr = new Uint8Array(n);
+
+	while (n--) {
+		u8arr[n] = bstr.charCodeAt(n);
+	}
+
+	return new File([u8arr], fileName, { type: mime });
+}
+
 function generateSecretLink(token: string): string {
 	return process.env.NODE_ENV === "development"
 		? `http://localhost:3000/secret/${token}`
@@ -39,4 +68,12 @@ function selectOnFocus(e: React.FocusEvent<HTMLTextAreaElement>): void {
 	e.target.select();
 }
 
-export { generateSecretLink, defaultEndpointPrefix, preventNonNumericalInput, stringToBase64, selectOnFocus };
+export {
+	generateSecretLink,
+	defaultEndpointPrefix,
+	preventNonNumericalInput,
+	stringToBase64,
+	selectOnFocus,
+	dataURLtoFile,
+	encodeFileToBase64
+};

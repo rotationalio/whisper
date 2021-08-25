@@ -4,11 +4,12 @@ import { Alert, AlertTitle } from "@material-ui/lab";
 import { Secret } from "utils/interfaces/Secret";
 import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
-import { selectOnFocus } from "utils/utils";
+import { dataURLtoFile, selectOnFocus } from "utils/utils";
 import { Link, useHistory } from "react-router-dom";
 import deleteSecret from "services/deleteSecret";
 import clsx from "clsx";
 import Button from "./Button";
+import ShowFile from "./ShowFile";
 dayjs.extend(relativeTime);
 
 type ShowSecretProps = {
@@ -50,8 +51,16 @@ const useStyles = makeStyles((theme: Theme) => ({
 
 const ShowSecret: React.FC<ShowSecretProps> = ({ secret, token }) => {
 	const [isLoading, setIsLoading] = React.useState(false);
+	const [file, setFile] = React.useState<File | undefined>(undefined);
 	const history = useHistory();
 	const classes = useStyles();
+
+	React.useEffect(() => {
+		if (secret?.is_base64) {
+			const _file = dataURLtoFile(secret.secret, secret.filename);
+			setFile(_file);
+		}
+	}, []);
 
 	const deleteWithPassword = (password: string) => {
 		deleteSecret(token, {
@@ -93,46 +102,50 @@ const ShowSecret: React.FC<ShowSecretProps> = ({ secret, token }) => {
 
 	return (
 		<div className={classes.section}>
-			<div className={classes.box}>
-				<Typography variant="h5" gutterBottom>
-					Secret
-				</Typography>
-				<Alert severity="warning" style={{ margin: "1rem 0", display: secret?.destroyed ? undefined : "none" }}>
-					<AlertTitle>Secret Expired</AlertTitle>
-					<Typography>
-						This is the last time you will be able to access this Secret, it has been destroyed now that you&apos;ve
-						retrieved it.
+			{secret?.is_base64 ? (
+				<ShowFile file={file} uploadedAt={secret.created} />
+			) : (
+				<div className={classes.box}>
+					<Typography variant="h5" gutterBottom>
+						Secret
 					</Typography>
-				</Alert>
-				<div>
-					<textarea
-						className={classes.textarea}
-						onFocus={selectOnFocus}
-						readOnly
-						autoFocus
-						defaultValue={secret?.secret}
-						aria-label="secret-message"
-					/>
+					<Alert severity="warning" style={{ margin: "1rem 0", display: secret?.destroyed ? undefined : "none" }}>
+						<AlertTitle>Secret Expired</AlertTitle>
+						<Typography>
+							This is the last time you will be able to access this Secret, it has been destroyed now that you&apos;ve
+							retrieved it.
+						</Typography>
+					</Alert>
+					<div>
+						<textarea
+							className={classes.textarea}
+							onFocus={selectOnFocus}
+							readOnly
+							autoFocus
+							defaultValue={secret?.secret}
+							aria-label="secret-message"
+						/>
+					</div>
+					<Typography variant="caption" gutterBottom>
+						Created: {dayjs(secret?.created).fromNow()}
+					</Typography>
+					<Box marginY="2rem" display="flex" gridGap="1rem" flexWrap="wrap">
+						<Link to="/" className={clsx({ [classes.fullWidth]: secret?.destroyed }, classes.link)}>
+							<Button label="Create another Secret" variant="contained" color="primary" fullWidth />
+						</Link>
+						<Button
+							label="Destroy this secret"
+							variant="contained"
+							color="secondary"
+							isLoading={isLoading}
+							onClick={handleDeleteClick}
+							disabled={isLoading}
+							style={{ flexGrow: 1 }}
+							className={clsx({ [classes.hide]: secret?.destroyed })}
+						/>
+					</Box>
 				</div>
-				<Typography variant="caption" gutterBottom>
-					Created: {dayjs(secret?.created).fromNow()}
-				</Typography>
-				<Box marginY="2rem" display="flex" gridGap="1rem" flexWrap="wrap">
-					<Link to="/" className={clsx({ [classes.fullWidth]: secret?.destroyed }, classes.link)}>
-						<Button label="Create another Secret" variant="contained" color="primary" fullWidth />
-					</Link>
-					<Button
-						label="Destroy this secret"
-						variant="contained"
-						color="secondary"
-						isLoading={isLoading}
-						onClick={handleDeleteClick}
-						disabled={isLoading}
-						style={{ flexGrow: 1 }}
-						className={clsx({ [classes.hide]: secret?.destroyed })}
-					/>
-				</Box>
-			</div>
+			)}
 		</div>
 	);
 };
