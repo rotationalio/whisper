@@ -1,4 +1,4 @@
-import { Button, Typography } from "@material-ui/core";
+import { Typography } from "@material-ui/core";
 import { TextField, Switch } from "formik-material-ui";
 import { Field, Form, Formik } from "formik";
 import { Autocomplete, AutocompleteRenderInputParams } from "formik-material-ui-lab";
@@ -8,35 +8,19 @@ import React, { useEffect } from "react";
 import { CreateSecretFormProps } from "types/CreateSecretFormProps";
 import { preventNonNumericalInput } from "utils/utils";
 import { useStyles } from "styles/createSecretFormStyles";
-import * as Yup from "yup";
-
-const options: Lifetime[] = [
-	{ value: "5m", label: "5 min" },
-	{ value: "15m", label: "15 min" },
-	{ value: "30m", label: "30 min" },
-	{ value: "1h", label: "1 hour" },
-	{ value: "2h", label: "2 hours" },
-	{ value: "3h", label: "3 hours" },
-	{ value: "24h", label: "1 day" },
-	{ value: "48h", label: "2 days" },
-	{ value: "72h", label: "3 days" },
-	{ value: "168h", label: "7 days" }
-];
-
-const CreateSecretSchema = Yup.object().shape({
-	secret: Yup.string().required("You must add a secret"),
-	password: Yup.string(),
-	lifetime: Yup.object().shape({ value: Yup.string(), label: Yup.string() }).nullable(),
-	accessType: Yup.boolean(),
-	accesses: Yup.number().max(108, "The max number is 108")
-});
+import clsx from "clsx";
+import Button from "./Button";
+import StyledDropzone from "./Dropzone";
+import { CreateSecretFileSchema, CreateSecretMessageSchema } from "utils/validation-schema";
+import { LIFETIME_OPTIONS } from "constants/index";
 
 const CreateSecretForm: React.FC<CreateSecretFormProps> = props => {
 	const classes = useStyles();
+	const CreateSecretSchema = props.type === "file" ? CreateSecretFileSchema : CreateSecretMessageSchema;
 
 	return (
 		<Formik initialValues={props.initialValues} validationSchema={CreateSecretSchema} onSubmit={props.onSubmit}>
-			{({ isSubmitting, errors, values, setFieldValue }) => {
+			{({ errors, values, setFieldValue }) => {
 				useEffect(() => {
 					if (values.accessType) {
 						setFieldValue("accesses", -1);
@@ -47,7 +31,7 @@ const CreateSecretForm: React.FC<CreateSecretFormProps> = props => {
 
 				return (
 					<Form className={classes.form} noValidate>
-						<div>
+						<div className={clsx({ [classes.hide]: props.type === "file" })}>
 							<Field
 								component={TextField}
 								name="secret"
@@ -62,6 +46,10 @@ const CreateSecretForm: React.FC<CreateSecretFormProps> = props => {
 								maxRows={15}
 							/>
 						</div>
+						<div className={clsx({ [classes.hide]: props.type === "message" })}>
+							<Field component={StyledDropzone} />
+						</div>
+
 						<div>
 							<Field
 								component={TextField}
@@ -97,7 +85,7 @@ const CreateSecretForm: React.FC<CreateSecretFormProps> = props => {
 								name="lifetime"
 								component={Autocomplete}
 								size="small"
-								options={options}
+								options={LIFETIME_OPTIONS}
 								getOptionLabel={(option: Lifetime) => option.label}
 								getOptionSelected={(option: Lifetime, value: Lifetime) => option.value === value.value}
 								renderInput={(params: AutocompleteRenderInputParams) => (
@@ -116,9 +104,15 @@ const CreateSecretForm: React.FC<CreateSecretFormProps> = props => {
 							/>
 						</div>
 						<div>
-							<Button type="submit" variant="contained" color="primary" disabled={isSubmitting}>
-								Get Token
-							</Button>
+							<Button
+								label="Get Token"
+								type="submit"
+								variant="contained"
+								color="primary"
+								fullWidth
+								isLoading={props.loading}
+								disabled={props.loading}
+							/>
 						</div>
 					</Form>
 				);
