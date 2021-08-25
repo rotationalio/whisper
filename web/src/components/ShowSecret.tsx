@@ -21,13 +21,20 @@ const useStyles = makeStyles((theme: Theme) => ({
 	section: {
 		height: "100vh",
 		display: "flex",
+		flexDirection: "column",
+		margin: "0 auto",
 		justifyContent: "center",
 		alignItems: "center",
-		outline: 0
+		outline: 0,
+		maxWidth: "500px",
+		width: "100%"
 	},
 	box: {
 		width: "100%",
-		maxWidth: "500px"
+		boxShadow: "rgba(0, 0, 0, 0.1) 0px 4px 12px",
+		background: "#f5f7f8",
+		padding: theme.spacing(2),
+		borderRadius: "5px"
 	},
 	textarea: {
 		width: "100%",
@@ -42,10 +49,16 @@ const useStyles = makeStyles((theme: Theme) => ({
 	},
 	link: {
 		textDecoration: "none",
-		minWidth: "50%"
+		maxWidth: "50%",
+		width: "100%"
 	},
 	fullWidth: {
 		width: "100%"
+	},
+	deleteButton: {
+		flexGrow: 1,
+		background: "red",
+		color: "#fff"
 	}
 }));
 
@@ -102,46 +115,54 @@ const ShowSecret: React.FC<ShowSecretProps> = ({ secret, token }) => {
 
 	return (
 		<div className={classes.section}>
+			<Alert
+				severity="warning"
+				style={{
+					margin: "1rem 0",
+					width: "100%",
+					display: secret?.destroyed ? undefined : "none"
+				}}
+			>
+				<AlertTitle>Secret Expired</AlertTitle>
+				<Typography>
+					This is the last time you will be able to access this Secret, it has been destroyed now that you&apos;ve
+					retrieved it.
+				</Typography>
+			</Alert>
 			{secret?.is_base64 ? (
-				<ShowFile file={file} uploadedAt={secret.created} />
+				<ShowFile file={file} uploadedAt={secret.created} loading={isLoading} onDelete={handleDeleteClick} />
 			) : (
 				<div className={classes.box}>
-					<Typography variant="h5" gutterBottom>
-						Secret
-					</Typography>
-					<Alert severity="warning" style={{ margin: "1rem 0", display: secret?.destroyed ? undefined : "none" }}>
-						<AlertTitle>Secret Expired</AlertTitle>
-						<Typography>
-							This is the last time you will be able to access this Secret, it has been destroyed now that you&apos;ve
-							retrieved it.
+					<Box marginBottom="2rem">
+						<Typography variant="h5" gutterBottom>
+							Secret
 						</Typography>
-					</Alert>
-					<div>
-						<textarea
-							className={classes.textarea}
-							onFocus={selectOnFocus}
-							readOnly
-							autoFocus
-							defaultValue={secret?.secret}
-							aria-label="secret-message"
-						/>
-					</div>
-					<Typography variant="caption" gutterBottom>
-						Created: {dayjs(secret?.created).fromNow()}
-					</Typography>
-					<Box marginY="2rem" display="flex" gridGap="1rem" flexWrap="wrap">
+						<div>
+							<textarea
+								className={classes.textarea}
+								onFocus={selectOnFocus}
+								readOnly
+								autoFocus
+								defaultValue={secret?.secret}
+								aria-label="secret-message"
+							/>
+						</div>
+						<Typography variant="caption" gutterBottom>
+							Created: {dayjs(secret?.created).fromNow()}
+						</Typography>
+					</Box>
+					<Box display="flex" justifyContent="space-between" gridGap="1rem" flexWrap="wrap">
 						<Link to="/" className={clsx({ [classes.fullWidth]: secret?.destroyed }, classes.link)}>
-							<Button label="Create another Secret" variant="contained" color="primary" fullWidth />
+							<Button label="Create another Secret" variant="contained" fullWidth color="primary" />
 						</Link>
 						<Button
 							label="Destroy this secret"
 							variant="contained"
-							color="secondary"
 							isLoading={isLoading}
 							onClick={handleDeleteClick}
 							disabled={isLoading}
-							style={{ flexGrow: 1 }}
-							className={clsx({ [classes.hide]: secret?.destroyed })}
+							style={{ background: "red", color: "#fff", maxWidth: "50%" }}
+							className={clsx({ [classes.hide]: secret?.destroyed }, classes.deleteButton)}
 						/>
 					</Box>
 				</div>

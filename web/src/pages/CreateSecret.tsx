@@ -56,8 +56,6 @@ const CreateSecret: React.FC = () => {
 			is_base64: values.is_base64 || false
 		};
 
-		console.log("DATA", data);
-
 		createSecret(data).then(
 			(response: AxiosResponse) => {
 				setToken(response.data);
