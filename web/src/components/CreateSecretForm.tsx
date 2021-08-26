@@ -58,6 +58,7 @@ const CreateSecretForm: React.FC<CreateSecretFormProps> = props => {
 								name="password"
 								size="small"
 								variant="outlined"
+								helperText="Optional, set a password to unlock the secret"
 							/>
 						</div>
 						<div>
@@ -72,6 +73,7 @@ const CreateSecretForm: React.FC<CreateSecretFormProps> = props => {
 								name="accesses"
 								size="small"
 								variant="outlined"
+								helperText="Limit the number of times the secret can be viewed"
 								pattern="[0-9]*"
 								InputProps={{ inputProps: { min: 1, max: 108 } }}
 								onKeyPress={preventNonNumericalInput}

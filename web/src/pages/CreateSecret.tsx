@@ -1,5 +1,5 @@
 import React from "react";
-import { Grid } from "@material-ui/core";
+import { Grid, Snackbar } from "@material-ui/core";
 import createSecret from "services/createSecret";
 import { Secret } from "utils/interfaces/Secret";
 import { FormikValues } from "formik";
@@ -33,7 +33,8 @@ const initialValues: Values = {
 
 const CreateSecret: React.FC = () => {
 	const [, setToken] = React.useState<{ token: string; expires: Date }>();
-	const [message, setMessage] = React.useState<{ status?: Color; message?: string }>({
+	const [message, setMessage] = React.useState<{ open?: boolean; status?: Color; message?: string }>({
+		open: false,
 		status: undefined,
 		message: undefined
 	});
@@ -64,9 +65,9 @@ const CreateSecret: React.FC = () => {
 				dispatch({ type: ModalType.SHOW_MODAL, payload: response.data });
 			},
 			(error: AxiosError) => {
-				setMessage({ status: "error", message: error.message });
+				setMessage({ open: true, status: "error", message: error.message });
 				setTimeout(() => {
-					setMessage({ status: undefined, message: undefined });
+					setMessage({ open: false, status: undefined, message: undefined });
 				}, 5000);
 
 				setIsLoading(false);
@@ -74,18 +75,30 @@ const CreateSecret: React.FC = () => {
 		);
 	}
 
+	const handleAlertClose = () => setMessage({ open: false });
+
 	return (
 		<Layout>
 			<div className={classes.root}>
 				<Grid container alignItems="center" className={classes.h__full}>
-					<Grid item sm={12} md={12} className={classes.w__full}>
-						<Alert
-							severity={message.status}
-							className={classes.alert}
-							style={{ visibility: message.message ? "visible" : "hidden" }}
+					<Grid item className={classes.w__full}>
+						<Snackbar
+							open={message.open}
+							autoHideDuration={5000}
+							onClose={handleAlertClose}
+							anchorOrigin={{
+								vertical: "top",
+								horizontal: "right"
+							}}
 						>
-							{message.message}
-						</Alert>
+							<Alert
+								severity={message.status}
+								className={classes.alert}
+								style={{ display: message.message ? undefined : "none" }}
+							>
+								{message.message}
+							</Alert>
+						</Snackbar>
 						<CreateSecretFormTabs onSubmit={handleSubmit} initialValues={initialValues} loading={isLoading} />
 					</Grid>
 				</Grid>
