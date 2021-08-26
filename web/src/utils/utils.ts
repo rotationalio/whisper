@@ -40,9 +40,7 @@ function encodeFileToBase64(file: File): Promise<string | ArrayBuffer | null> {
 
 function dataURLtoFile(dataurl: string, filename?: string): File {
 	const fileName = filename || "";
-	const arr = dataurl.split(",");
-	const mime = (arr[0].match(/:(.*?);/) as string[])[1];
-	const bstr = atob(arr[1]);
+	const bstr = atob(dataurl);
 
 	let n = bstr.length;
 	const u8arr = new Uint8Array(n);
@@ -51,7 +49,19 @@ function dataURLtoFile(dataurl: string, filename?: string): File {
 		u8arr[n] = bstr.charCodeAt(n);
 	}
 
-	return new File([u8arr], fileName, { type: mime });
+	return new File([u8arr], fileName);
+}
+
+function formatBytes(bytes: number, decimals = 2) {
+	if (bytes === 0) return "0 Bytes";
+
+	const k = 1024;
+	const dm = decimals < 0 ? 0 : decimals;
+	const sizes = ["Bytes", "KB", "MB", "GB", "TB", "PB", "EB", "ZB", "YB"];
+
+	const i = Math.floor(Math.log(bytes) / Math.log(k));
+
+	return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + " " + sizes[i];
 }
 
 function generateSecretLink(token: string): string {
@@ -75,5 +85,6 @@ export {
 	stringToBase64,
 	selectOnFocus,
 	dataURLtoFile,
-	encodeFileToBase64
+	encodeFileToBase64,
+	formatBytes
 };
