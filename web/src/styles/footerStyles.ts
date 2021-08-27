@@ -8,6 +8,7 @@ export const useStyles = makeStyles({
 		display: "flex",
 		justifyContent: "space-around",
 		padding: "1rem 0",
+		marginTop: "1rem",
 		width: "100%"
 	},
 	text__white: {

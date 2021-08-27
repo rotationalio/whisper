@@ -19,20 +19,10 @@ function a11yProps(index: any) {
 
 const useStyles = makeStyles((theme: Theme) => ({
 	root: {
-		maxWidth: "500px",
-		margin: "0 auto",
 		backgroundColor: theme.palette.background.paper,
 		gap: theme.spacing(4),
-		flexDirection: "column",
-		justifyContent: "center",
-		alignItems: "center",
-		width: "100%",
-		maxHeight: "80%",
-		height: "80%",
-		boxShadow: "rgba(0, 0, 0, 0.1) 0px 4px 12px",
-		background: "#f5f7f8",
-		borderRadius: "5px",
-		padding: theme.spacing(2)
+		paddingTop: theme.spacing(2),
+		paddingBottom: theme.spacing(2)
 	},
 	container: {}
 }));
