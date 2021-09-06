@@ -1,9 +1,9 @@
 import FetchSecret from "pages/FetchSecret";
 import { renderWithRouterMatch, waitFor } from "utils/test-utils";
 import { SecretMock } from "__mocks__/SecretMock";
-import getSecret from "../services/ShowSecret";
+import { getSecret } from "../services";
 
-jest.mock("../services/ShowSecret");
+jest.mock("../services");
 
 const mockedGetSecret = getSecret as jest.MockedFunction<typeof getSecret>;
 
