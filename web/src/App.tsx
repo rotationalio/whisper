@@ -1,4 +1,4 @@
-import Modal from "components/Modal";
+import CreateSecretModal from "components/CreateSecretModal";
 import { ModalProvider } from "contexts/modalContext";
 import { ServerStatusProvider } from "contexts/serverStatusContext";
 import { BrowserRouter as Router } from "react-router-dom";
@@ -12,7 +12,7 @@ const App: React.FC = () => {
 				<ServerStatusProvider>
 					<ModalProvider>
 						<AppRouter />
-						<Modal />
+						<CreateSecretModal />
 					</ModalProvider>
 				</ServerStatusProvider>
 			</div>
