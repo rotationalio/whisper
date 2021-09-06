@@ -23,7 +23,6 @@ const useStyles = makeStyles((theme: Theme) => ({
 			display: "none"
 		},
 		[`${theme.breakpoints.down("md")} and (orientation: landscape)`]: {
-			border: "2px solid purple !important",
 			height: "initial"
 		}
 	}

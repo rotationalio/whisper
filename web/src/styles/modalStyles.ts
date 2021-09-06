@@ -4,7 +4,7 @@ export const useStyles = makeStyles((theme: Theme) =>
 	createStyles({
 		paper: {
 			position: "absolute",
-			width: 500,
+			minWidth: 500,
 			backgroundColor: theme.palette.background.paper,
 			top: "50%",
 			left: "50%",
