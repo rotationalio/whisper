@@ -45,9 +45,11 @@ const StyledDropzone: React.FC<StyledDropzoneProps> = ({ form }) => {
 		maxSize: FILE_SIZE,
 		onDrop: (_acceptedFiles: File[]) => {
 			const file = _acceptedFiles[0];
-			form.setFieldValue("file", file);
-			form.setFieldValue("filename", file.name);
-			form.setFieldValue("is_base64", true);
+			if (file) {
+				form.setFieldValue("file", file);
+				form.setFieldValue("filename", file.name);
+				form.setFieldValue("is_base64", true);
+			}
 		}
 	});
 
