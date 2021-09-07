@@ -1,5 +1,5 @@
 import { makeStyles } from "@material-ui/styles";
-import Layout from "components/Layout";
+import { GlobalLayout } from "layouts";
 
 const useStyles = makeStyles(() => ({
 	container: {}
@@ -9,9 +9,9 @@ const Help: React.FC = () => {
 	const classes = useStyles();
 
 	return (
-		<Layout>
+		<GlobalLayout>
 			<div className={classes.container}>help</div>
-		</Layout>
+		</GlobalLayout>
 	);
 };
 

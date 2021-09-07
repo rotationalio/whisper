@@ -9,7 +9,7 @@ import SecretPassword from "../components/SecretPassword";
 import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
 import ShowSecret from "components/ShowSecret";
-import Layout from "components/Layout";
+import { GlobalLayout } from "layouts";
 dayjs.extend(relativeTime);
 
 const FetchSecret: React.FC = () => {
@@ -60,12 +60,12 @@ const FetchSecret: React.FC = () => {
 	};
 
 	return (
-		<Layout>
+		<GlobalLayout>
 			{status === "pending" ? "Loading..." : null}
 			{status === "error" ? <SecretNotFound title="Not Found" message={errorMessage} /> : null}
 			{status === "unauthorized" ? <SecretPassword onSubmit={handlePasswordSubmit} error={errorMessage} /> : null}
 			{status === "success" ? <ShowSecret secret={secret} token={token} /> : null}
-		</Layout>
+		</GlobalLayout>
 	);
 };
 

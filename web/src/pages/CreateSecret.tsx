@@ -9,7 +9,7 @@ import { Alert, Color } from "@material-ui/lab";
 import { Lifetime } from "utils/interfaces";
 import { useModal } from "contexts/modalContext";
 import { ModalType } from "utils/enums/modal";
-import Layout from "components/Layout";
+import { ContentLayout, GlobalLayout } from "layouts";
 import { encodeFileToBase64, stringToBase64 } from "utils/utils";
 import CreateSecretFormTabs from "components/CreateSecretFormTabs";
 
@@ -81,9 +81,9 @@ const CreateSecret: React.FC = () => {
 	const handleAlertClose = () => setMessage({ open: false });
 
 	return (
-		<Layout>
-			<div className={classes.root}>
-				<Grid container alignItems="center" className={classes.h__full}>
+		<GlobalLayout>
+			<ContentLayout>
+				<Grid container alignItems="center">
 					<Grid item className={classes.w__full}>
 						<Snackbar
 							open={message.open}
@@ -105,8 +105,8 @@ const CreateSecret: React.FC = () => {
 						<CreateSecretFormTabs onSubmit={handleSubmit} initialValues={initialValues} loading={isLoading} />
 					</Grid>
 				</Grid>
-			</div>
-		</Layout>
+			</ContentLayout>
+		</GlobalLayout>
 	);
 };
 
