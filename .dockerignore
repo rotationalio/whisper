@@ -4,11 +4,32 @@
 
 # Exclude locally vendored dependencies.
 vendor/
+web/node_modules
 
 # Exclude "build-time" ignore files.
 .dockerignore
 .gcloudignore
 
+containers/*/Dockerfile
+
 # Exclude git history and configuration.
 .git
 .gitignore
+web/.gitignore
+.github/*
+
+# No environment variables
+.env
+*/.env*
+
+# Ignore Local fixtures
+fixtures/*
+
+# OS Droppings
+.DS_Store
+*/DS_Store
+
+# NPM logs
+web/npm-debug.log*
+web/yarn-debug.log*
+web/yarn-error.log*

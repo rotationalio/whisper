@@ -1,0 +1,45 @@
+version: "3"
+services:
+  api:
+    build:
+      context: .
+      dockerfile: containers/api/Dockerfile
+    image: rotationalio/whisper-api:local
+    restart: "on-failure"
+    ports:
+      - "8318:8318"
+    environment:
+      WHISPER_BIND_ADDR: ":8318"
+      WHISPER_MAINTENANCE: "false"
+      WHISPER_MODE: "debug"
+      WHISPER_LOG_LEVEL: "debug"
+      WHISPER_CONSOLE_LOG: "true"
+      GOOGLE_APPLICATION_CREDENTIALS: "/run/secret/whisper_sa"
+      GOOGLE_PROJECT_NAME: "rotationalio-habanero"
+      WHISPER_GOOGLE_TESTING: "true"
+    secrets:
+      - whisper_sa
+    profiles:
+      - backend
+      - all
+
+  web:
+    build:
+      context: .
+      dockerfile: containers/web/Dockerfile
+      args:
+        - "REACT_APP_API_BASE_URL=http://localhost:8318/v1"
+        - "NODE_ENV=production"
+    image: rotationalio/whisper-ui:local
+    restart: "on-failure"
+    ports:
+      - "3000:80"
+    environment:
+      PORT: "80"
+    profiles:
+      - frontend
+      - all
+
+secrets:
+  whisper_sa:
+    file: fixtures/whisper-sa.json

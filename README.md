@@ -165,3 +165,45 @@ Note that if a secret is password protected, the password is required to destroy
 ## API Details
 
 To develop against the Whisper REST API load the [Postman](https://www.postman.com/) collection found here: [fixtures/postman_collection.json](fixtures/postman_collection.json).
+
+## Docker
+
+Docker images are used for deployment to Google Cloud Run and Kubernetes clusters and can also be used for development.
+
+### Development
+
+The `docker-compose.yml` configuration is intended to help run local services when developing either the API backend or the React frontend. Profiles assist in running either one set of services or all of the services. To build the images run:
+
+```
+$ docker compose --profile=all build
+```
+
+The `all` profile will build all images defined by the `docker-compose.yml` function. It should create two images `rotationalio/whisper-api:local` and `rotationalio/whisper-ui:local`. To run just the API:
+
+```
+$ docker compose --profile=backend up
+```
+
+Note, you may have to create a `fixtures/whisper-sa.json` with a Google service account file in order for the backend to run. Alternatively to run just the front-end:
+
+```
+$ docker compose --profile=frontend up
+```
+
+You can also run both with the `all` profile as in the build example.
+
+Docker Compose runs the services in a development/debug mode. This means verbose logging from the API server as well as the use of the Mock in-memory secrets database rather than using Google Secret Manager directly; this makes it easier to develop against locally.
+
+## Build and Deploy
+
+This should be handled by GitHub actions. If you want to manually build the images and push them to Dockerhub and gcr.io you can run the following script:
+
+```
+$ ./containers/build.sh
+```
+
+By default this will tag the build with the Git revision hash, but you can specify a different tag as the first argument as follows:
+
+```
+$ ./containers/build.sh v1.0
+```
