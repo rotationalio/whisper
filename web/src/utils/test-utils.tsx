@@ -4,6 +4,7 @@ import { createMemoryHistory, MemoryHistory } from "history";
 import { ServerStatusProvider } from "contexts/serverStatusContext";
 import { ThemeProvider } from "@material-ui/core";
 import theme from "theme";
+import { ModalProvider } from "contexts";
 
 export function render(
 	ui: React.ReactNode,
@@ -13,7 +14,9 @@ export function render(
 	return {
 		...rtlRender(
 			<ThemeProvider theme={theme}>
-				<Router history={history}>{ui}</Router>
+				<ModalProvider>
+					<Router history={history}>{ui}</Router>
+				</ModalProvider>
 			</ThemeProvider>
 		),
 		history
@@ -34,9 +37,11 @@ export function renderWithRouterMatch(
 	return {
 		...rtlRender(
 			<ServerStatusProvider>
-				<Router history={history}>
-					<Route path={path}>{ui}</Route>
-				</Router>
+				<ModalProvider>
+					<Router history={history}>
+						<Route path={path}>{ui}</Route>
+					</Router>
+				</ModalProvider>
 			</ServerStatusProvider>
 		)
 	};

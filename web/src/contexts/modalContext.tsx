@@ -9,7 +9,8 @@ type State = {
 
 type Action =
 	| { type: ModalType.SHOW_MODAL; payload?: Record<string, never> }
-	| { type: ModalType.HIDE_MODAL; payload?: Record<string, never> };
+	| { type: ModalType.HIDE_MODAL; payload?: Record<string, never> }
+	| { type: ModalType.SHOW_ABOUT_US_MODAL; payload?: Record<string, never> };
 
 type ModalProviderProps = {
 	children: React.ReactNode;
@@ -28,6 +29,12 @@ const modalReducer = (state = initialState, action: Action) => {
 			return {
 				...state,
 				modalType: ModalType.SHOW_MODAL,
+				modalProps: action.payload
+			};
+		case ModalType.SHOW_ABOUT_US_MODAL:
+			return {
+				...state,
+				modalType: ModalType.SHOW_ABOUT_US_MODAL,
 				modalProps: action.payload
 			};
 		case ModalType.HIDE_MODAL:

@@ -62,57 +62,65 @@ const CreateSecretModal: React.FC = () => {
 		}
 	};
 
+	const handleClose = () => {
+		if (window.confirm("Be sure to copy the link before closing the window")) {
+			dispatch({ type: ModalType.HIDE_MODAL });
+		}
+	};
+
 	return (
-		<Modal>
-			<Box>
-				<Typography variant="h5" align="center" gutterBottom>
-					Secret created successfully
-				</Typography>
-				<Typography align="center" gutterBottom>
-					You can find your secret on this link below
-				</Typography>
-				<Typography align="center" gutterBottom>
-					It expires{" "}
-					<span style={{ color: "red", fontWeight: "bold" }}>{dayjs(state.modalProps?.expires).fromNow()}</span>
-				</Typography>
-			</Box>
+		<Modal open={state.modalType === "SHOW_MODAL"} onClose={handleClose}>
+			<>
+				<Box>
+					<Typography variant="h5" align="center" gutterBottom>
+						Secret created successfully
+					</Typography>
+					<Typography align="center" gutterBottom>
+						You can find your secret on this link below
+					</Typography>
+					<Typography align="center" gutterBottom>
+						It expires{" "}
+						<span style={{ color: "red", fontWeight: "bold" }}>{dayjs(state.modalProps?.expires).fromNow()}</span>
+					</Typography>
+				</Box>
 
-			<Box
-				display="flex"
-				alignItems="center"
-				paddingLeft="15px"
-				justifyContent="space-between"
-				bgcolor="#f1f3f4"
-				borderRadius=".2rem"
-			>
-				<div className={classes.ellipsis}>
-					<Typography>{secretLink}</Typography>
-				</div>
-				<div>
-					<CopyToClipboard text={secretLink} onCopy={handleCopy}>
-						<IconButton aria-label="copy" size="medium" title="Copy this link">
-							<LinkIcon />
-						</IconButton>
-					</CopyToClipboard>
-				</div>
-			</Box>
+				<Box
+					display="flex"
+					alignItems="center"
+					paddingLeft="15px"
+					justifyContent="space-between"
+					bgcolor="#f1f3f4"
+					borderRadius=".2rem"
+				>
+					<div className={classes.ellipsis}>
+						<Typography>{secretLink}</Typography>
+					</div>
+					<div>
+						<CopyToClipboard text={secretLink} onCopy={handleCopy}>
+							<IconButton aria-label="copy" size="medium" title="Copy this link">
+								<LinkIcon />
+							</IconButton>
+						</CopyToClipboard>
+					</div>
+				</Box>
 
-			<Box display="flex" gridGap="2rem" justifyContent="space-around">
-				<Button
-					isLoading={isLoading}
-					label="Destroy this secret"
-					onClick={handleDeleteSecret}
-					color="secondary"
-					variant="contained"
-					disabled={isLoading}
-					style={{ minWidth: "200px" }}
-				/>
-			</Box>
-			<Snackbar open={alert.open} autoHideDuration={5000} onClose={handleAlertClose}>
-				<Alert onClose={handleAlertClose} severity={alert.severity}>
-					{alert.message}
-				</Alert>
-			</Snackbar>
+				<Box display="flex" gridGap="2rem" justifyContent="space-around">
+					<Button
+						isLoading={isLoading}
+						label="Destroy this secret"
+						onClick={handleDeleteSecret}
+						color="secondary"
+						variant="contained"
+						disabled={isLoading}
+						style={{ minWidth: "200px" }}
+					/>
+				</Box>
+				<Snackbar open={alert.open} autoHideDuration={5000} onClose={handleAlertClose}>
+					<Alert onClose={handleAlertClose} severity={alert.severity}>
+						{alert.message}
+					</Alert>
+				</Snackbar>
+			</>
 		</Modal>
 	);
 };

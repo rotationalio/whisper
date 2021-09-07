@@ -6,7 +6,6 @@ import NotFound from "pages/NotFound";
 import { Redirect, Route, Switch } from "react-router-dom";
 import getStatus from "services/status";
 import { Status } from "utils/enums/status";
-import AboutUs from "pages/AboutUs";
 import Help from "pages/Help";
 
 const ShowSecret = React.lazy(() => import("pages/FetchSecret"));
@@ -31,7 +30,6 @@ const AppRouter: React.FC = () => {
 		<Suspense fallback="loading...">
 			<Switch>
 				<Route path="/" exact component={CreateSecret} />
-				<Route path="/about" exact component={AboutUs} />
 				<Route path="/help" exact component={Help} />
 				<Route path="/maintainance" exact component={MaintainancePage} />
 				{status.status === Status.maintainance ? <Redirect to="/maintainance" /> : null}
