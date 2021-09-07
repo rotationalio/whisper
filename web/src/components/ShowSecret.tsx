@@ -75,41 +75,20 @@ const ShowSecret: React.FC<ShowSecretProps> = ({ secret, token }) => {
 		}
 	}, []);
 
-	const deleteWithPassword = (password: string) => {
-		deleteSecret(token, {
-			headers: {
-				Authorization: `Bearer ${password}`,
-				"Access-Control-Request-Headers": "Authorization"
-			}
-		}).then(() => {
-			window.sessionStorage.removeItem("__KEY__");
-			setIsLoading(false);
-			history.push("/");
-		});
-	};
-
-	const deleteWithoutPassword = () => {
-		deleteSecret(token).then(
-			() => {
-				setIsLoading(false);
-				history.push("/");
-			},
-			async () => {
-				setIsLoading(false);
-			}
-		);
-	};
-
 	const handleDeleteClick = () => {
-		const encodedPassword = window.sessionStorage.getItem("__KEY__") || null;
+		const encodedPassword = window.sessionStorage.getItem("__KEY__");
 
 		if (window.confirm("Do you really want to destroy the secret?")) {
 			setIsLoading(true);
-			if (encodedPassword) {
-				deleteWithPassword(encodedPassword);
-			} else {
-				deleteWithoutPassword();
-			}
+			deleteSecret(token, encodedPassword).then(
+				() => {
+					setIsLoading(false);
+					history.push("/");
+				},
+				async () => {
+					setIsLoading(false);
+				}
+			);
 		}
 	};
 

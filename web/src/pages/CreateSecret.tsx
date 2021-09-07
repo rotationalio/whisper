@@ -10,7 +10,7 @@ import { Lifetime } from "utils/interfaces";
 import { useModal } from "contexts/modalContext";
 import { ModalType } from "utils/enums/modal";
 import Layout from "components/Layout";
-import { encodeFileToBase64 } from "utils/utils";
+import { encodeFileToBase64, stringToBase64 } from "utils/utils";
 import CreateSecretFormTabs from "components/CreateSecretFormTabs";
 
 interface Values {
@@ -61,6 +61,9 @@ const CreateSecret: React.FC = () => {
 			(response: AxiosResponse) => {
 				setToken(response.data);
 				setIsLoading(false);
+
+				const encodedPassword = typeof data.password === "string" && stringToBase64(data.password);
+				encodedPassword && sessionStorage.setItem("__KEY__", encodedPassword);
 
 				dispatch({ type: ModalType.SHOW_MODAL, payload: response.data });
 			},

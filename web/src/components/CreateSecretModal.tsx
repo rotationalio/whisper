@@ -43,9 +43,11 @@ const CreateSecretModal: React.FC = () => {
 
 	const handleDeleteSecret = async () => {
 		if (window.confirm("Do you really want to remove the secret message ?")) {
+			const password = sessionStorage.getItem("__KEY__");
+
 			if (state.modalProps?.token) {
 				setIsLoading(true);
-				deleteSecret(state.modalProps?.token).then(
+				deleteSecret(state.modalProps?.token, password).then(
 					() => {
 						setIsLoading(false);
 						setAlert({ open: true, message: "Secret message destroyed" });
