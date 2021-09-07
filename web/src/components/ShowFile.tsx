@@ -8,16 +8,12 @@ import Button from "./Button";
 const useStyles = makeStyles((theme: Theme) => ({
 	container: {
 		width: "100%",
-		maxWidth: "500px",
 		padding: theme.spacing(2),
-		backgroundColor: theme.palette.background.paper,
 		gap: theme.spacing(4),
 		flexDirection: "column",
 		justifyContent: "center",
 		alignItems: "center",
 		height: "300px",
-		boxShadow: "rgba(0, 0, 0, 0.1) 0px 4px 12px",
-		background: "#f5f7f8",
 		borderRadius: "5px"
 	}
 }));
