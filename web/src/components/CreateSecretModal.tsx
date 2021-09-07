@@ -5,7 +5,7 @@ import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
 import React, { useState } from "react";
 import CopyToClipboard from "react-copy-to-clipboard";
-import deleteSecret from "services/deleteSecret";
+import { deleteSecret } from "services";
 import LinkIcon from "@material-ui/icons/Link";
 import { ModalType } from "utils/enums/modal";
 import Button from "./Button";

@@ -6,7 +6,7 @@ import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
 import { dataURLtoFile, selectOnFocus } from "utils/utils";
 import { Link, useHistory } from "react-router-dom";
-import deleteSecret from "services/deleteSecret";
+import { deleteSecret } from "services";
 import clsx from "clsx";
 import Button from "./Button";
 import ShowFile from "./ShowFile";

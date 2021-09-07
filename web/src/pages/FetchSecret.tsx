@@ -3,7 +3,7 @@ import SecretNotFound from "components/SecretNotFound";
 import { FormikHelpers, FormikValues } from "formik";
 import React from "react";
 import { useParams } from "react-router-dom";
-import getSecret from "services/ShowSecret";
+import { getSecret } from "services";
 import { Secret } from "utils/interfaces/Secret";
 import SecretPassword from "../components/SecretPassword";
 import dayjs from "dayjs";

@@ -1,6 +1,6 @@
 import React from "react";
 import { Grid, Snackbar } from "@material-ui/core";
-import createSecret from "services/createSecret";
+import { createSecret } from "services";
 import { Secret } from "utils/interfaces/Secret";
 import { FormikValues } from "formik";
 import { AxiosError, AxiosResponse } from "axios";
