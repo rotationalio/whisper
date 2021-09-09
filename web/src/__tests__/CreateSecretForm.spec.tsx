@@ -29,7 +29,7 @@ describe("CreateSecretForm", () => {
 		it("render the message validation error", async () => {
 			const onSubmitMock = jest.fn();
 			const { getByPlaceholderText, container } = render(
-				<CreateSecretForm onSubmit={onSubmitMock} initialValues={{}} />
+				<CreateSecretForm loading={false} type="message" onSubmit={onSubmitMock} initialValues={{}} />
 			);
 			const messageInput = getByPlaceholderText(/type your secret here/i);
 
