@@ -1,4 +1,4 @@
-import { Box, Tooltip, Typography } from "@material-ui/core";
+import { Box, Typography } from "@material-ui/core";
 import { useModal } from "contexts";
 import { useServerStatus } from "contexts/serverStatusContext";
 import React from "react";
@@ -22,20 +22,33 @@ const AboutUs: React.FC = () => {
 		<Modal open={state.modalType === ModalType.SHOW_ABOUT_US_MODAL} onClose={handleClose}>
 			<>
 				<div>
-					Lorem ipsum dolor sit amet consectetur adipisicing elit. Soluta voluptate iste maiores praesentium rerum eos
-					pariatur suscipit animi alias similique, ad qui, minus officia aspernatur dicta cumque fugit? Ab vel
-					necessitatibus dolor nesciunt pariatur inventore dolores corrupti beatae, laboriosam, nobis architecto
-					sapiente iusto omnis aliquam asperiores officia cumque, doloribus non labore a. Deserunt nobis corporis
-					deleniti harum delectus facere beatae vitae ducimus veritatis quas, esse doloribus maiores molestiae possimus
-					a voluptatibus, velit dolores pariatur saepe debitis, enim error quasi similique! Debitis aut asperiores,
-					aliquid harum veniam quia modi non tempora, illum sequi labore amet consectetur corrupti facere, similique sed
-					aliquam in! Accusantium rem commodi autem sit fugit corporis id aperiam fuga facere obcaecati quo omnis, nisi
-					reprehenderit quaerat et velit, molestias labore. Mollitia dolore doloremque explicabo architecto culpa,
-					sapiente asperiores inventore molestiae aut incidunt fuga ipsa quis numquam illum molestias animi eius aliquam
-					rerum. Sunt totam quis nostrum aspernatur inventore numquam eaque ducimus architecto eum officia maxime
-					distinctio, dolorem atque magni quisquam ipsa consequuntur aliquid ad ratione rerum aut! Illum, possimus velit
-					nemo, minima assumenda sapiente cum dolores sed ullam laboriosam cupiditate quo et eveniet quae! Molestiae
-					error laudantium pariatur placeat culpa beatae numquam, asperiores at, saepe facilis optio sequi?
+					<h3>About Whisper</h3>
+					<p>
+						The Whisper service is an internal helper tool used at <a href="https://rotational.io">Rotational Labs</a>{" "}
+						to quickly share secrets, configurations, environment files, credentials, certificates, and more. Whisper is
+						designed to accelerate our own internal software engineering practice and is comprised of an API service
+						that is accessed by both a web UI and a command line application. There are many tools like Whisper, but
+						this one is ours!
+					</p>
+					<p>
+						To download the CLI application, report bugs or issues, or learn more about Whisper, please see the
+						README.md file in the Whisper GitHub repository:{" "}
+						<a href="https://github.com/rotationalio/whisper">rotationalio/whisper</a>.
+					</p>
+					<p>
+						Although Whisper is an internal tool at Rotational, We&apos;ve made the code open source and are happy to
+						have general contributions that enhance the project (particularly if you&apos;re a member of the Rotational
+						Engineering Team!) We&apos;ve made our releases and the code freely available under the{" "}
+						<a href="https://github.com/rotationalio/whisper/blob/main/LICENSE">Apache License 2.0</a> and we&apos;d
+						feel privileged if you used Whisper in your own organization. Please note, however, that Rotational Labs
+						makes no guarantees about the security of this software project and provides all code and binaries as is for
+						general use. Use with common sense and at your own risk!
+					</p>
+					<p>
+						If you&apos;re a Rotational customer and are interested in Whisper, please let us know, we&apos;d be happy
+						to deploy it for you as a single-tenant service. If you&apos;re not a Rotational customer but are
+						interested, please get in touch with us at <a href="mailto:info@rotational.io">info@rotational.io</a>.
+					</p>
 				</div>
 				<footer>
 					<Box display="flex" flexDirection="column" alignItems="center">
@@ -44,11 +57,9 @@ const AboutUs: React.FC = () => {
 								<>
 									<Typography variant="caption">
 										{status.status && (
-											<Tooltip title={status.host || ""} style={{ cursor: "pointer" }}>
-												<span>
-													<Badge content="server" color={StatusColor[status?.status]} />
-												</span>
-											</Tooltip>
+											<span>
+												<Badge content={`${status?.host || "server"} status`} color={StatusColor[status?.status]} />
+											</span>
 										)}
 									</Typography>
 									<Typography variant="caption">
