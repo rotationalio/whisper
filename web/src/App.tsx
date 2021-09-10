@@ -1,3 +1,4 @@
+import AboutUs from "components/AboutUs";
 import CreateSecretModal from "components/CreateSecretModal";
 import { ModalProvider } from "contexts/modalContext";
 import { ServerStatusProvider } from "contexts/serverStatusContext";
@@ -13,6 +14,7 @@ const App: React.FC = () => {
 					<ModalProvider>
 						<AppRouter />
 						<CreateSecretModal />
+						<AboutUs />
 					</ModalProvider>
 				</ServerStatusProvider>
 			</div>

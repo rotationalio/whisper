@@ -1,5 +1,8 @@
 import React from "react";
-import { makeStyles, Theme } from "@material-ui/core";
+import { Chip, makeStyles, Theme } from "@material-ui/core";
+import HelpOutlineIcon from "@material-ui/icons/HelpOutline";
+import { useModal } from "contexts";
+import { ModalType } from "utils/enums/modal";
 
 const useStyles = makeStyles((theme: Theme) => ({
 	root: {
@@ -23,9 +26,17 @@ type ContentLayoutProps = {
 
 const ContentLayout: React.FC<ContentLayoutProps> = ({ children }) => {
 	const classes = useStyles();
+	const { dispatch } = useModal();
+
+	const handleClick = () => {
+		dispatch({ type: ModalType.SHOW_ABOUT_US_MODAL });
+	};
 
 	return (
 		<div className={classes.root}>
+			<div className={classes.chpisContainer}>
+				<Chip variant="outlined" size="small" avatar={<HelpOutlineIcon />} label="Learn More" onClick={handleClick} />
+			</div>
 			<div className={classes.container}>{children}</div>
 		</div>
 	);

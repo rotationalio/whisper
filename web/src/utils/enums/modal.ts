@@ -1,4 +1,5 @@
 export enum ModalType {
 	SHOW_MODAL = "SHOW_MODAL",
+	SHOW_ABOUT_US_MODAL = "SHOW_ABOUT_US_MODAL",
 	HIDE_MODAL = "HIDE_MODAL"
 }
