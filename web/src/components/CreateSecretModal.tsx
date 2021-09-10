@@ -37,9 +37,19 @@ const CreateSecretModal: React.FC = () => {
 		message: ""
 	});
 	const [isLoading, setIsLoading] = useState(false);
+	const [isExpired, setIsExpired] = useState(false);
 	const secretLink = typeof state.modalProps?.token === "string" ? generateSecretLink(state.modalProps?.token) : "";
 	const handleCopy = () => setAlert({ open: true, message: "Secret link copied" });
 	const handleAlertClose = () => setAlert({ open: false });
+
+	React.useEffect(() => {
+		if (state.modalProps?.expires) {
+			const timeInMs = new Date(state.modalProps?.expires).getTime() - Date.now();
+			setTimeout(() => {
+				setIsExpired(true);
+			}, timeInMs);
+		}
+	}, [state.modalProps?.expires]);
 
 	const handleDeleteSecret = async () => {
 		if (window.confirm("Do you really want to remove the secret message ?")) {
@@ -75,13 +85,21 @@ const CreateSecretModal: React.FC = () => {
 					<Typography variant="h5" align="center" gutterBottom>
 						Secret created successfully
 					</Typography>
-					<Typography align="center" gutterBottom>
-						You can find your secret on this link below
-					</Typography>
-					<Typography align="center" gutterBottom>
-						It expires{" "}
-						<span style={{ color: "red", fontWeight: "bold" }}>{dayjs(state.modalProps?.expires).fromNow()}</span>
-					</Typography>
+					{!isExpired ? (
+						<>
+							<Typography align="center" style={{ display: isExpired ? "none" : "visible" }} gutterBottom>
+								You can find your secret on this link below
+							</Typography>
+							<Typography align="center" gutterBottom>
+								It expires{" "}
+								<span style={{ color: "red", fontWeight: "bold" }}>{dayjs(state.modalProps?.expires).fromNow()}</span>
+							</Typography>
+						</>
+					) : (
+						<Typography align="center" gutterBottom>
+							<span style={{ color: "red" }}>You can no longer use this link because it has expired</span>
+						</Typography>
+					)}
 				</Box>
 
 				<Box
@@ -91,13 +109,14 @@ const CreateSecretModal: React.FC = () => {
 					justifyContent="space-between"
 					bgcolor="#f1f3f4"
 					borderRadius=".2rem"
+					border={`${isExpired ? "1px solid red" : undefined}`}
 				>
-					<div className={classes.ellipsis}>
+					<div className={classes.ellipsis} style={{ userSelect: isExpired ? "none" : undefined }}>
 						<Typography>{secretLink}</Typography>
 					</div>
 					<div>
 						<CopyToClipboard text={secretLink} onCopy={handleCopy}>
-							<IconButton aria-label="copy" size="medium" title="Copy this link">
+							<IconButton aria-label="copy" size="medium" title="Copy this link" disabled={isExpired}>
 								<LinkIcon />
 							</IconButton>
 						</CopyToClipboard>
@@ -111,7 +130,7 @@ const CreateSecretModal: React.FC = () => {
 						onClick={handleDeleteSecret}
 						color="secondary"
 						variant="contained"
-						disabled={isLoading}
+						disabled={isLoading || isExpired}
 						style={{ minWidth: "200px" }}
 					/>
 				</Box>
