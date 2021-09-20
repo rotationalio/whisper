@@ -8,7 +8,8 @@ COPY web/yarn.lock ./
 RUN yarn
 
 # Set production environment variable for build context
-ARG REACT_APP_API_BASE_URL "https://whisper.rotational.dev/v1"
+ARG REACT_APP_API_BASE_URL "https://api.whisper.rotational.dev/v1"
+ARG REACT_APP_UI_BASE_URL "https://whisper.rotational.dev"
 ARG NODE_ENV "production"
 
 # Build app with browserify

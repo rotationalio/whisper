@@ -35,7 +35,7 @@ func main() {
 			Aliases: []string{"e", "url", "u"},
 			Usage:   "endpoint to connect to the whisper service on",
 			EnvVars: []string{"WHISPER_ENDPOINT", "WHISPER_URL"},
-			Value:   "https://whisper.rotational.dev",
+			Value:   "https://api.whisper.rotational.dev",
 		},
 	}
 

@@ -29,6 +29,7 @@ services:
       dockerfile: containers/web/Dockerfile
       args:
         - "REACT_APP_API_BASE_URL=http://localhost:8318/v1"
+        - "REACT_APP_UI_BASE_URL=http://localhost:3000"
         - "NODE_ENV=production"
     image: rotationalio/whisper-ui:local
     restart: "on-failure"
