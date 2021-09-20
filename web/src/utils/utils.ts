@@ -18,11 +18,27 @@ function defaultEndpointPrefix(): string {
 
 	switch (process.env.NODE_ENV) {
 		case "production":
-			return "https://whisper.rotational.dev/v1";
+			return "https://api.whisper.rotational.dev/v1";
+		case "development":
+			return "http://localhost:8318/v1";
+		default:
+			throw new Error("Could not identify the api prefix");
+	}
+}
+
+function defaultAbsoluteURL(): string {
+	const baseURL = process.env.REACT_APP_UI_BASE_URL;
+	if (baseURL) {
+		return baseURL;
+	}
+
+	switch (process.env.NODE_ENV) {
+		case "production":
+			return "https://whisper.rotational.dev";
 		case "development":
 			return "http://localhost:3000";
 		default:
-			throw new Error("Could not identify the api prefix");
+			throw new Error("could not identify the ui absolute url");
 	}
 }
 
@@ -65,9 +81,7 @@ function formatBytes(bytes: number, decimals = 2) {
 }
 
 function generateSecretLink(token: string): string {
-	return process.env.NODE_ENV === "development"
-		? `http://localhost:3000/secret/${token}`
-		: `${defaultEndpointPrefix()}/secret/${token}`;
+	return `${defaultAbsoluteURL()}/secret/${token}`;
 }
 
 function stringToBase64(str: string): string {
