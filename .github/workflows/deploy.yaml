@@ -1,0 +1,82 @@
+name: Deploy to Cloud Run
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  api_deploy:
+    name: Deploy API
+    runs-on: ubuntu-latest
+    env:
+      IMAGE_NAME: gcr.io/${{ secrets.GCP_PROJECT_ID }}/whisper-api
+    steps:
+      - name: Login to Google
+        uses: google-github-actions/setup-gcloud@master
+        with:
+          project_id: ${{ secrets.GCP_PROJECT_ID }}
+          service_account_email: ${{ secrets.GCP_EMAIL }}
+          service_account_key: ${{ secrets.GCP_CREDENTIALS }}
+
+      - name: Configure Docker
+        run: gcloud auth configure-docker --quiet
+
+      - name: Checkout Code
+        uses: actions/checkout@v2
+
+      - name: Get Version Tag
+        run: echo "RELEASE_VERSION=${GITHUB_REF#refs/*/}" >> $GITHUB_ENV
+
+      - name: Build Docker Image
+        run: docker build -t $IMAGE_NAME:$RELEASE_VERSION -f containers/api/Dockerfile .
+
+      - name: Push Docker Image
+        run: docker push $IMAGE_NAME:$RELEASE_VERSION
+
+      - name: Deploy Docker Image
+        run: |
+          gcloud run deploy whisper-api \
+            --image $IMAGE_NAME:$RELEASE_VERSION \
+            --region us-east1 --platform managed \
+            --cpu 1 --memory 512Mi --port 8318 \
+            --max-instances 16 --concurrency 48 \
+            --tag whisper \
+            --allow-unauthenticated
+
+  web_deploy:
+    name: Deploy Web UI
+    runs-on: ubuntu-latest
+    env:
+      IMAGE_NAME: gcr.io/${{ secrets.GCP_PROJECT_ID }}/whisper-ui
+    steps:
+      - name: Login to Google
+        uses: google-github-actions/setup-gcloud@master
+        with:
+          project_id: ${{ secrets.GCP_PROJECT_ID }}
+          service_account_email: ${{ secrets.GCP_EMAIL }}
+          service_account_key: ${{ secrets.GCP_CREDENTIALS }}
+
+      - name: Configure Docker
+        run: gcloud auth configure-docker --quiet
+
+      - name: Checkout Code
+        uses: actions/checkout@v2
+
+      - name: Get Version Tag
+        run: echo "RELEASE_VERSION=${GITHUB_REF#refs/*/}" >> $GITHUB_ENV
+
+      - name: Build Docker Image
+        run: docker build -t $IMAGE_NAME:$RELEASE_VERSION -f containers/web/Dockerfile .
+
+      - name: Push Docker Image
+        run: docker push $IMAGE_NAME:$RELEASE_VERSION
+
+      - name: Deploy Docker Image
+        run: |
+          gcloud run deploy whisper-ui \
+            --image $IMAGE_NAME:$RELEASE_VERSION \
+            --region us-east1 --platform managed \
+            --cpu 1 --memory 512Mi \
+            --max-instances 16 --concurrency 48 \
+            --tag whisper \
+            --allow-unauthenticated
