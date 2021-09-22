@@ -12,7 +12,7 @@ jobs:
       IMAGE_NAME: gcr.io/${{ secrets.GCP_PROJECT_ID }}/whisper-api
     steps:
       - name: Login to Google
-        uses GoogleCloudPlatform/github-actions/setup-gcloud@master
+        uses: GoogleCloudPlatform/github-actions/setup-gcloud@master
         with:
           project_id: ${{ secrets.GCP_PROJECT_ID }}
           service_account_email: ${{ secrets.GCP_EMAIL }}
@@ -24,14 +24,18 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v2
 
+      - name: Get Version Tag
+        uses: actions/checkout@v2
+        run: echo "RELEASE_VERSION=${GITHUB_REF#refs/*/}" >> $GITHUB_ENV
+
       - name: Build Docker Image
-        run: docker build -t $IMAGE_NAME -f containers/api/Dockerfile .
+        run: docker build -t $IMAGE_NAME:$RELEASE_VERSION -f containers/api/Dockerfile .
 
       - name: Push Docker Image
-        run: docker push $IMAGE_NAME
+        run: docker push $IMAGE_NAME:$RELEASE_VERSION
 
       - name: Deploy Docker Image
-        run: gcloud run deploy ${{ secrets. GCP_PROJECT_ID }} --image $IMAGE_NAME --region us-central1 --platform managed
+        run: gcloud run deploy ${{ secrets. GCP_PROJECT_ID }} --image $IMAGE_NAME:$RELEASE_VERSION --region us-central1 --platform managed
 
   web_deploy:
     name: Deploy API
@@ -40,7 +44,7 @@ jobs:
       IMAGE_NAME: gcr.io/${{ secrets.GCP_PROJECT_ID }}/whisper-ui
     steps:
       - name: Login to Google
-        uses GoogleCloudPlatform/github-actions/setup-gcloud@master
+        uses: GoogleCloudPlatform/github-actions/setup-gcloud@master
         with:
           project_id: ${{ secrets.GCP_PROJECT_ID }}
           service_account_email: ${{ secrets.GCP_EMAIL }}
@@ -52,11 +56,15 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v2
 
+      - name: Get Version Tag
+        uses: actions/checkout@v2
+        run: echo "RELEASE_VERSION=${GITHUB_REF#refs/*/}" >> $GITHUB_ENV
+
       - name: Build Docker Image
-        run: docker build -t $IMAGE_NAME -f containers/web/Dockerfile .
+        run: docker build -t $IMAGE_NAME:$RELEASE_VERSION -f containers/web/Dockerfile .
 
       - name: Push Docker Image
-        run: docker push $IMAGE_NAME
+        run: docker push $IMAGE_NAME:$RELEASE_VERSION
 
       - name: Deploy Docker Image
-        run: gcloud run deploy ${{ secrets. GCP_PROJECT_ID }} --image $IMAGE_NAME --region us-central1 --platform managed
+        run: gcloud run deploy ${{ secrets. GCP_PROJECT_ID }} --image $IMAGE_NAME:$RELEASE_VERSION --region us-central1 --platform managed
