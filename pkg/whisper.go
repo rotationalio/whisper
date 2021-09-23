@@ -71,9 +71,8 @@ func New(conf config.Config) (s *Server, err error) {
 	s.router.Use(gin.Recovery())
 
 	// Add CORS configuration
-	// TODO: configure origins from the environment rather than hard-coding
 	s.router.Use(cors.New(cors.Config{
-		AllowAllOrigins:  true,
+		AllowOrigins:     conf.AllowOrigins,
 		AllowMethods:     []string{"GET", "POST", "PUT", "PATCH", "DELETE", "HEAD"},
 		AllowHeaders:     []string{"Origin", "Content-Length", "Content-Type", "Authorization"},
 		AllowCredentials: true,

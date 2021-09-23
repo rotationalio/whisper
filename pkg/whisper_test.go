@@ -24,6 +24,7 @@ var testEnv = map[string]string{
 	"WHISPER_BIND_ADDR":              "127.0.0.1:8311",
 	"WHISPER_LOG_LEVEL":              "debug",
 	"WHISPER_CONSOLE_LOG":            "false",
+	"WHISPER_ALLOW_ORIGINS":          "http://localhost:3000",
 	"GOOGLE_APPLICATION_CREDENTIALS": "fixtures/test.json",
 	"GOOGLE_PROJECT_NAME":            "test",
 }
@@ -97,8 +98,7 @@ func (s *WhisperTestSuite) TestCORS() {
 	req, err := http.NewRequest(http.MethodOptions, server.URL+"/v1/status", nil)
 	s.NoError(err)
 
-	// Add origin and headers that we want to test
-	// TODO: loop over multiple origins (note this CORS policy is temporary)
+	// Add correct origin and headers that we want to test
 	req.Header.Add("Origin", "http://localhost:3000")
 	req.Header.Add("Content-Type", "application/json")
 	req.Header.Add("Content-Length", "0")
@@ -107,6 +107,11 @@ func (s *WhisperTestSuite) TestCORS() {
 	rep, err := client.Do(req)
 	s.NoError(err)
 
+	// The Access Control headers should be present if they're valid
+	s.Contains(rep.Header, "Access-Control-Allow-Origin")
+	s.Contains(rep.Header, "Access-Control-Allow-Headers")
+	s.Contains(rep.Header, "Access-Control-Allow-Methods")
+
 	// The Access-Control-Allow-Origin should match or be * if the CORS policy is valid
 	origin := rep.Header.Get("Access-Control-Allow-Origin")
 	s.True(origin == "http://localhost:3000" || origin == "*")
@@ -114,6 +119,18 @@ func (s *WhisperTestSuite) TestCORS() {
 	// The Access-Control-Allow-Headers should match our sent headers
 	headers := rep.Header.Get("Access-Control-Allow-Headers")
 	s.Equal("Origin,Content-Length,Content-Type,Authorization", headers)
+
+	// Add incorrect origin and headers to get CORS rejection
+	req, err = http.NewRequest(http.MethodOptions, server.URL+"/v1/status", nil)
+	s.NoError(err)
+
+	req.Header.Add("Origin", "http://localhost:666")
+	rep, err = client.Do(req)
+	s.NoError(err)
+
+	// The Access Control headers should be empty if they're not valid
+	s.NotContains(rep.Header, "Access-Control-Allow-Origin")
+	s.NotContains(rep.Header, "Access-Control-Allow-Headers")
 }
 
 // Returns the current environment for the specified keys, or if no keys are specified
