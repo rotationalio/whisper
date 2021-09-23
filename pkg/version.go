@@ -10,8 +10,8 @@ import (
 // Version component constants for the current build.
 const (
 	VersionMajor         = 1
-	VersionMinor         = 0
-	VersionPatch         = 1
+	VersionMinor         = 1
+	VersionPatch         = 0
 	VersionReleaseLevel  = ""
 	VersionReleaseNumber = 0
 )

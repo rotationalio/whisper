@@ -17,8 +17,8 @@ const AppRouter: React.FC = () => {
 
 	React.useEffect(() => {
 		getStatus().then((response: AxiosResponse) => {
-			const hostname = location.hostname;
-			setServerStatus({ ...response.data, host: hostname });
+			const url = new URL(response.config.baseURL as string);
+			setServerStatus({ ...response.data, host: url.hostname });
 		});
 
 		return () => {

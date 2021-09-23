@@ -40,7 +40,6 @@ jobs:
             --region us-east1 --platform managed \
             --cpu 1 --memory 512Mi --port 8318 \
             --max-instances 16 --concurrency 48 \
-            --tag whisper \
             --allow-unauthenticated
 
   web_deploy:
@@ -66,7 +65,13 @@ jobs:
         run: echo "RELEASE_VERSION=${GITHUB_REF#refs/*/}" >> $GITHUB_ENV
 
       - name: Build Docker Image
-        run: docker build -t $IMAGE_NAME:$RELEASE_VERSION -f containers/web/Dockerfile .
+        run: |
+          docker build \
+            -f containers/web/Dockerfile \
+            --build-arg REACT_APP_API_BASE_URL=https://api.whisper.rotational.dev/v1 \
+            --build-arg REACT_APP_UI_BASE_URL=https://whisper.rotational.dev \
+            --build-arg NODE_ENV=production \
+            -t $IMAGE_NAME:$RELEASE_VERSION .
 
       - name: Push Docker Image
         run: docker push $IMAGE_NAME:$RELEASE_VERSION
@@ -78,5 +83,4 @@ jobs:
             --region us-east1 --platform managed \
             --cpu 1 --memory 512Mi \
             --max-instances 16 --concurrency 48 \
-            --tag whisper \
             --allow-unauthenticated

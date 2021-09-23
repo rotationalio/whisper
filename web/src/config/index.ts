@@ -1,7 +1,8 @@
 import axios from "axios";
+import { defaultEndpointPrefix } from "../utils/utils";
 
 const CONFIG = {
-	API_URL: process.env.REACT_APP_API_BASE_URL
+	API_URL: defaultEndpointPrefix()
 };
 
 const client = axios.create({
