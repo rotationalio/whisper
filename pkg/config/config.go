@@ -19,13 +19,14 @@ import (
 // Config uses envconfig to load required settings from the environment and validate
 // them in preparation for running the whisper service.
 type Config struct {
-	Maintenance bool            `split_words:"true" default:"false"`
-	Mode        string          `split_words:"true" default:"debug"`
-	BindAddr    string          `split_words:"true" required:"false"`
-	LogLevel    LogLevelDecoder `split_words:"true" default:"info"`
-	ConsoleLog  bool            `split_words:"true" default:"false"`
-	Google      GoogleConfig
-	processed   bool
+	Maintenance  bool            `split_words:"true" default:"false"`
+	Mode         string          `split_words:"true" default:"debug"`
+	BindAddr     string          `split_words:"true" required:"false"`
+	LogLevel     LogLevelDecoder `split_words:"true" default:"info"`
+	ConsoleLog   bool            `split_words:"true" default:"false"`
+	AllowOrigins []string        `split_words:"true" default:"https://whisper.rotational.dev"`
+	Google       GoogleConfig
+	processed    bool
 }
 
 type GoogleConfig struct {

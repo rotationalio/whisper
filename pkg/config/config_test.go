@@ -16,6 +16,7 @@ var testEnv = map[string]string{
 	"WHISPER_BIND_ADDR":              ":443",
 	"WHISPER_LOG_LEVEL":              "debug",
 	"WHISPER_CONSOLE_LOG":            "true",
+	"WHISPER_ALLOW_ORIGINS":          "https://whisper.rotational.dev,https://whisper.rotational.io",
 	"GOOGLE_APPLICATION_CREDENTIALS": "fixtures/whisper-sa.json",
 	"GOOGLE_PROJECT_NAME":            "test-project",
 	"WHISPER_GOOGLE_TESTING":         "true",
@@ -43,6 +44,7 @@ func TestConfig(t *testing.T) {
 	require.Equal(t, gin.ReleaseMode, conf.Mode)
 	require.Equal(t, testEnv["WHISPER_BIND_ADDR"], conf.BindAddr)
 	require.Equal(t, zerolog.DebugLevel, conf.GetLogLevel())
+	require.Len(t, conf.AllowOrigins, 2)
 	require.Equal(t, testEnv["GOOGLE_APPLICATION_CREDENTIALS"], conf.Google.Credentials)
 	require.Equal(t, testEnv["GOOGLE_PROJECT_NAME"], conf.Google.Project)
 	require.True(t, conf.Google.Testing)
