@@ -132,3 +132,23 @@ source:
 signs:
   - artifacts: checksum
     args: ["--batch", "-u", "{{ .Env.GPG_FINGERPRINT }}", "--output", "${signature}", "--detach-sign", "${artifact}"]
+
+# Publish a homebrew formulae on our brew tap
+brews:
+  -
+    name: whisper
+    tap:
+      owner: rotationalio
+      name: homebrew-tools
+      token: "{{ .Env.HOMEBREW_TAP_GITHUB_TOKEN }}"
+
+    commit_author:
+      name: Rotational Labs
+      email: info@
+
+    homepage: "https://whisper.rotational.dev"
+    description: "Create and fetch whisper secret messages and files via the command line."
+    license: "Apache-2.0"
+
+    test: |
+      system "#{bin}/whisper --version"
