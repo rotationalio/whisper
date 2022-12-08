@@ -5,7 +5,6 @@ services:
       context: .
       dockerfile: containers/api/Dockerfile
     image: rotationalio/whisper-api:local
-    restart: "on-failure"
     ports:
       - "8318:8318"
     environment:
@@ -32,7 +31,6 @@ services:
         - "REACT_APP_UI_BASE_URL=http://localhost:3000"
         - "NODE_ENV=production"
     image: rotationalio/whisper-ui:local
-    restart: "on-failure"
     ports:
       - "3000:80"
     environment:
