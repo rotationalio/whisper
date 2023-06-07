@@ -1,4 +1,9 @@
-FROM node:16 AS builder
+# Dynamic Builds
+ARG BUILDER_IMAGE=node:16
+ARG FINAL_IMAGE=nginx:stable
+
+# Build stage
+FROM ${BUILDER_IMAGE} AS builder
 
 WORKDIR /usr/src/app
 
@@ -16,9 +21,9 @@ ARG NODE_ENV "production"
 COPY web/ ./
 RUN yarn build
 
-FROM nginx:stable
+FROM ${FINAL_IMAGE} AS final
 
-LABEL maintainer="Rotational Labs <info@rotational.io>"
+LABEL maintainer="Rotational Labs <support@rotational.io>"
 LABEL description="Whisper UI, a secret sharing user interface"
 
 COPY --from=builder /usr/src/app/build/ /usr/share/nginx/html

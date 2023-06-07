@@ -1,36 +1,50 @@
-# Use the offical golang image to create a binary.
-# This is based on Debian and sets the GOPATH to /go.
-# https://hub.docker.com/_/golang
-FROM golang:1.16-buster as builder
+# Dynamic Builds
+ARG BUILDER_IMAGE=golang:1.20-buster
+ARG FINAL_IMAGE=debian:buster-slim
 
-# Create and change to the app directory.
-WORKDIR /app
+# Build stage
+FROM ${BUILDER_IMAGE} as builder
+
+# Build Args
+ARG GIT_REVISION=""
+
+# Ensure ca-certificates are up to date on the image
+RUN update-ca-certificates
+
+# Use modules for dependencies
+WORKDIR $GOPATH/src/github.com/rotationalio/whisper
 
 # Retrieve application dependencies.
 # This allows the container build to reuse cached dependencies.
 # Expecting to copy go.mod and if present go.sum.
-COPY go.* ./
+COPY go.mod .
+COPY go.sum .
+
+ENV CGO_ENABLED=0
+ENV GO111MODULE=on
 RUN go mod download
+RUN go mod verify
 
 # Copy local code to the container image.
 COPY . ./
 
 # Build the binary.
-RUN go build -v ./cmd/whisper
+RUN go build -v -o /go/bin/whisper -ldflags="-X 'github.com/rotationalio/whisper/pkg.GitVersion=${GIT_REVISION}'" ./cmd/whisper
 
 # Use the official Debian slim image for a lean production container.
 # https://hub.docker.com/_/debian
-FROM debian:buster-slim
+FROM ${FINAL_IMAGE} AS final
 
-LABEL maintainer="Rotational Labs <info@rotational.io>"
+LABEL maintainer="Rotational Labs <support@rotational.io>"
 LABEL description="Whisper, a secret management utility"
 
+# Ensure ca-certificates are up to date
 RUN set -x && apt-get update && \
     DEBIAN_FRONTEND=noninteractive apt-get install -y ca-certificates && \
     rm -rf /var/lib/apt/lists/*
 
 # Copy the binary to the production image from the builder stage.
-COPY --from=builder /app/whisper /app/whisper
+COPY --from=builder /go/bin/whisper /usr/local/bin/whisper
 
 # Production environment defaults
 ENV WHISPER_MAINTENANCE=false
@@ -39,4 +53,4 @@ ENV WHISPER_LOG_LEVEL=info
 ENV WHISPER_CONSOLE_LOG=false
 
 # Run the web service on container startup.
-CMD ["/app/whisper", "serve"]
+CMD [ "/usr/local/bin/whisper", "serve" ]

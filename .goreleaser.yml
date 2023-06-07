@@ -18,7 +18,7 @@ builds:
       - -v
 
     # Custom ldflags templates.
-    ldflags: -s -w -X main.version={{.Version}} -X main.commit={{.Commit}} -X main.date={{.Date}}
+    ldflags: -s -w -X github.com/rotationalio/whisper/pkg.GitVersion={{.Commit}} -X github.com/rotationalio/whisper/pkg.BuildDate={{.Date}}
 
     # Custom environment variables to be set during the build
     env:
@@ -46,9 +46,9 @@ builds:
     # List of combinations of GOOS + GOARCH + GOARM to ignore.
     ignore:
       - goos: darwin
-        goarch: 386
+        goarch: "386"
       - goos: linux
-        goarch: 386
+        goarch: "386"
       - goos: windows
         goarch: arm64
 
@@ -144,7 +144,7 @@ brews:
 
     commit_author:
       name: Rotational Labs
-      email: info@
+      email: info@rotational.io
 
     folder: Formula
 
