@@ -64,7 +64,7 @@ func (s *WhisperTestSuite) SetupSuite() {
 	s.router = s.api.Routes()
 
 	// Set the server as healthy
-	s.api.SetHealth(true)
+	s.api.SetStatus(true, true)
 }
 
 func (s *WhisperTestSuite) TearDownSuite() {

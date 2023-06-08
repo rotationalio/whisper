@@ -10,7 +10,9 @@ import (
 
 const (
 	serverStatusOK          = "ok"
-	serverStatusUnavailable = "unavailable"
+	serverStatusNotReady    = "not ready"
+	serverStatusUnhealthy   = "unhealthy"
+	serverStatusMaintenance = "maintenance"
 )
 
 // Status is an unauthenticated endpoint that returns the status of the api server and
@@ -19,9 +21,9 @@ const (
 // matter how many API versions are available.
 func (s *Server) Status(c *gin.Context) {
 	c.JSON(http.StatusOK, v1.StatusReply{
-		Status:    serverStatusOK,
-		Timestamp: time.Now(),
-		Version:   Version(),
+		Status:  serverStatusOK,
+		Uptime:  time.Since(s.started).String(),
+		Version: Version(),
 	})
 }
 
@@ -30,20 +32,61 @@ func (s *Server) Status(c *gin.Context) {
 // ensure that complex handling doesn't bog down the server.
 func (s *Server) Available() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		// Check health status (if unhealthy, assume maintenance mode)
+		// Check the health and ready status of the server
 		s.RLock()
-		if !s.healthy {
-			c.JSON(http.StatusServiceUnavailable, v1.StatusReply{
-				Status:    serverStatusUnavailable,
-				Error:     "service is currently in maintenance mode",
-				Timestamp: time.Now(),
-				Version:   Version(),
-			})
+		healthy := s.healthy
+		ready := s.ready
+		s.RUnlock()
+
+		if s.conf.Maintenance || !healthy || !ready {
+			out := v1.StatusReply{
+				Uptime:  time.Since(s.started).String(),
+				Version: Version(),
+			}
+
+			switch {
+			case !healthy:
+				out.Status = serverStatusUnhealthy
+			case !ready:
+				out.Status = serverStatusNotReady
+			default:
+				out.Status = serverStatusMaintenance
+			}
+
+			// Write the 503 response and stop processing the request
+			c.JSON(http.StatusServiceUnavailable, out)
 			c.Abort()
-			s.RUnlock()
 			return
 		}
-		s.RUnlock()
+
 		c.Next()
 	}
+}
+
+// Healthz is used to alert k8s to the health/liveness status of the server.
+func (s *Server) Healthz(c *gin.Context) {
+	s.RLock()
+	healthy := s.healthy
+	s.RUnlock()
+
+	if !healthy {
+		c.Data(http.StatusServiceUnavailable, "text/plain", []byte(serverStatusUnhealthy))
+		return
+	}
+
+	c.Data(http.StatusOK, "text/plain", []byte(serverStatusOK))
+}
+
+// Readyz is used to alert k8s to the readiness status of the server.
+func (s *Server) Readyz(c *gin.Context) {
+	s.RLock()
+	ready := s.ready
+	s.RUnlock()
+
+	if !ready {
+		c.Data(http.StatusServiceUnavailable, "text/plain", []byte(serverStatusNotReady))
+		return
+	}
+
+	c.Data(http.StatusOK, "text/plain", []byte(serverStatusOK))
 }
