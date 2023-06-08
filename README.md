@@ -2,10 +2,8 @@
 
 [![Go Reference](https://pkg.go.dev/badge/github.com/rotationalio/whisper.svg)](https://pkg.go.dev/github.com/rotationalio/whisper)
 [![Go Report Card](https://goreportcard.com/badge/github.com/rotationalio/whisper)](https://goreportcard.com/report/github.com/rotationalio/whisper)
-![GitHub Actions CI](https://github.com/rotationalio/whisper/actions/workflows/build.yaml/badge.svg?branch=main)
-![GitHub Actions CD](https://github.com/rotationalio/whisper/actions/workflows/release.yaml/badge.svg)
-[![codecov](https://codecov.io/gh/rotationalio/whisper/branch/main/graph/badge.svg?token=64KYN8JYL4)](https://codecov.io/gh/rotationalio/whisper)
-
+[![Build and Test](https://github.com/rotationalio/whisper/actions/workflows/build.yaml/badge.svg)](https://github.com/rotationalio/whisper/actions/workflows/build.yaml)
+[![Publish Release](https://github.com/rotationalio/whisper/actions/workflows/release.yaml/badge.svg)](https://github.com/rotationalio/whisper/actions/workflows/release.yaml)
 
 **There are many secrets management utilities, this one is ours … shhh**
 
@@ -16,7 +14,14 @@ The `whisper` CLI program makes it easy to interact with the Whisper API from th
 To install the CLI application, download the appropriate binary from the [releases page](https://github.com/rotationalio/whisper/releases) and extract to a directory in your `$PATH` such as `~/bin`. Alternatively, if you have `$GOPATH/bin` in your `$PATH` you can fetch and install the binary with:
 
 ```
-$ go get github.com/rotationalio/whisper/...
+$ go install github.com/rotationalio/whisper/cmd/whisper@latest
+```
+
+You can also install using [Homebrew](https://github.com/rotationalio/homebrew-tools) on MacOS as follows:
+
+```
+$ brew tap tap rotationalio/tools
+$ brew install whisper
 ```
 
 Once installed, make sure that you can execute the `whisper` command as follows:

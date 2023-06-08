@@ -23,7 +23,6 @@ import (
 
 func init() {
 	// Initialize zerolog with GCP logging requirements
-	log.Logger = log.Output(zerolog.ConsoleWriter{Out: os.Stderr})
 	zerolog.TimeFieldFormat = time.RFC3339
 	zerolog.TimestampFieldName = logger.GCPFieldKeyTime
 	zerolog.MessageFieldName = logger.GCPFieldKeyMsg
@@ -32,6 +31,8 @@ func init() {
 	var gcpHook logger.SeverityHook
 	log.Logger = zerolog.New(os.Stdout).Hook(gcpHook).With().Timestamp().Logger()
 }
+
+const ServiceName = "whisper"
 
 func New(conf config.Config) (s *Server, err error) {
 	// Load the default configuration from the environment
@@ -64,21 +65,15 @@ func New(conf config.Config) (s *Server, err error) {
 	}
 	log.Debug().Msg("connected to google secret manager")
 
-	// Create the router
+	// Create the Gin router and setup its routes
 	gin.SetMode(conf.Mode)
 	s.router = gin.New()
-	s.router.Use(ginzerolog.Logger("gin"))
-	s.router.Use(gin.Recovery())
-
-	// Add CORS configuration
-	s.router.Use(cors.New(cors.Config{
-		AllowOrigins:     conf.AllowOrigins,
-		AllowMethods:     []string{"GET", "POST", "PUT", "PATCH", "DELETE", "HEAD"},
-		AllowHeaders:     []string{"Origin", "Content-Length", "Content-Type", "Authorization"},
-		AllowCredentials: true,
-		MaxAge:           12 * time.Hour,
-	}))
-
+	s.router.RedirectTrailingSlash = true
+	s.router.RedirectFixedPath = false
+	s.router.HandleMethodNotAllowed = true
+	s.router.ForwardedByClientIP = true
+	s.router.UseRawPath = false
+	s.router.UnescapePathValues = true
 	if err = s.setupRoutes(); err != nil {
 		return nil, err
 	}
@@ -88,9 +83,9 @@ func New(conf config.Config) (s *Server, err error) {
 		Addr:         s.conf.BindAddr,
 		Handler:      s.router,
 		ErrorLog:     nil,
-		ReadTimeout:  5 * time.Second,
-		WriteTimeout: 15 * time.Second,
-		IdleTimeout:  30 * time.Second,
+		ReadTimeout:  20 * time.Second,
+		WriteTimeout: 20 * time.Second,
+		IdleTimeout:  120 * time.Second,
 	}
 
 	log.Debug().Msg("created http server with gin router")
@@ -103,19 +98,23 @@ type Server struct {
 	srv     *http.Server         // handle to a custom http server with specified API defaults
 	router  *gin.Engine          // the http handler and associated middlware
 	vault   *vault.SecretManager // storage for all secrets the whisper application manages
-	healthy bool                 // application state of the server
+	healthy bool                 // application state of the server for health checks
+	ready   bool                 // application state of the server for ready checks
+	started time.Time            // the timestamp when the server was started
 	errc    chan error           // synchronize shutdown gracefully
 }
 
 func (s *Server) Serve() (err error) {
-	s.SetHealth(!s.conf.Maintenance)
 	s.osSignals()
+	s.SetStatus(true, true)
 
 	if s.conf.Maintenance {
 		log.Warn().Msg("starting server in maintenance mode")
 	}
 
+	s.started = time.Now()
 	log.Info().Str("addr", s.conf.BindAddr).Msg("whisper server started")
+
 	if err = s.srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
 		return err
 	}
@@ -128,7 +127,7 @@ func (s *Server) Serve() (err error) {
 
 func (s *Server) Shutdown() (err error) {
 	log.Info().Msg("gracefully shutting down whisper server")
-	s.SetHealth(false)
+	s.SetStatus(false, false)
 
 	errs := make([]error, 0)
 	ctx, cancel := context.WithTimeout(context.Background(), 35*time.Second)
@@ -160,19 +159,58 @@ func (s *Server) Routes() http.Handler {
 }
 
 func (s *Server) setupRoutes() (err error) {
+	// Setup CORS configuration
+	corsConf := cors.Config{
+		AllowOrigins:     s.conf.AllowOrigins,
+		AllowMethods:     []string{"GET", "POST", "PUT", "PATCH", "DELETE", "HEAD"},
+		AllowHeaders:     []string{"Origin", "Content-Length", "Content-Type", "Authorization"},
+		AllowCredentials: true,
+		MaxAge:           12 * time.Hour,
+	}
 
 	// Application Middleware
-	s.router.Use(s.Available())
+	// NOTE: ordering is important to how middleware is handled
+	middlewares := []gin.HandlerFunc{
+		// Logging should be on the outside so we can record the correct latency of requests
+		// NOTE: logging panics will not recover
+		ginzerolog.Logger(ServiceName),
+
+		//Panic recovery middleware
+		gin.Recovery(),
+
+		// CORS configuration allows the front-end to make cross-origin requests
+		cors.New(corsConf),
+
+		// Mainenance mode handling
+		s.Available(),
+	}
+
+	// Add the middleware to the router
+	for _, middleware := range middlewares {
+		if middleware != nil {
+			s.router.Use(middleware)
+		}
+	}
 
 	// Redirect the root to the current version root
 	s.router.GET("/", s.RedirectVersion)
 
 	// Add the v1 API routes (currently the only version)
 	v1 := s.router.Group("/v1")
-	v1.GET("/status", s.Status)
-	v1.POST("/secrets", s.CreateSecret)
-	v1.GET("/secrets/:token", s.FetchSecret)
-	v1.DELETE("/secrets/:token", s.DestroySecret)
+	{
+		// Heartbeat route
+		v1.GET("/status", s.Status)
+
+		// Secrets REST resource
+		v1.POST("/secrets", s.CreateSecret)
+		v1.GET("/secrets/:token", s.FetchSecret)
+		v1.DELETE("/secrets/:token", s.DestroySecret)
+	}
+
+	// Kubernetes liveness probes
+	s.router.GET("/healthz", s.Healthz)
+	s.router.GET("/livez", s.Healthz)
+	s.router.GET("/readyz", s.Readyz)
 
 	// NotFound and NotAllowed requests
 	s.router.NoRoute(NotFound)
@@ -183,11 +221,12 @@ func (s *Server) setupRoutes() (err error) {
 // SetHealth sets the health status on the API server, putting it into unavailable mode
 // if health is false, and removing maintenance mode if health is true. Here primarily
 // for testing purposes since it is unlikely an outside caller can access this.
-func (s *Server) SetHealth(health bool) {
+func (s *Server) SetStatus(health, ready bool) {
 	s.Lock()
 	s.healthy = health
+	s.ready = ready
 	s.Unlock()
-	log.Debug().Bool("health", health).Msg("server health set")
+	log.Debug().Bool("health", health).Bool("ready", ready).Msg("server status set")
 }
 
 func (s *Server) osSignals() {
