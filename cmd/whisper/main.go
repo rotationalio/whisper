@@ -7,7 +7,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/fs"
-	"io/ioutil"
 	"math/big"
 	"os"
 	"path/filepath"
@@ -211,7 +210,7 @@ func create(c *cli.Context) (err error) {
 
 		// Load the secret as base64 encoded data from a file
 		var data []byte
-		if data, err = ioutil.ReadFile(c.String("in")); err != nil {
+		if data, err = os.ReadFile(c.String("in")); err != nil {
 			return cli.Exit(err, 1)
 		}
 		req.Filename = filepath.Base(c.String("in"))
@@ -302,7 +301,7 @@ func fetch(c *cli.Context) (err error) {
 			data = []byte(rep.Secret)
 		}
 
-		if err = ioutil.WriteFile(path, data, 0644); err != nil {
+		if err = os.WriteFile(path, data, 0644); err != nil {
 			return cli.Exit(err, 1)
 		}
 

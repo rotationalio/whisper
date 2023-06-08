@@ -16,6 +16,12 @@ const (
 	VersionReleaseNumber = 0
 )
 
+// Set the GitVersion via -ldflags="-X 'github.com/rotationalio/whisper/pkg.GitVersion=$(git rev-parse --short HEAD)'"
+var (
+	GitVersion string
+	BuildDate  string
+)
+
 // Version returns the semantic version for the current build.
 func Version() string {
 	var versionCore string
@@ -27,10 +33,19 @@ func Version() string {
 
 	if VersionReleaseLevel != "" {
 		if VersionReleaseNumber > 0 {
-			return fmt.Sprintf("%s-%s%d", versionCore, VersionReleaseLevel, VersionReleaseNumber)
+			versionCore = fmt.Sprintf("%s-%s%d", versionCore, VersionReleaseLevel, VersionReleaseNumber)
 		}
-		return fmt.Sprintf("%s-%s", versionCore, VersionReleaseLevel)
+		versionCore = fmt.Sprintf("%s-%s", versionCore, VersionReleaseLevel)
 	}
+
+	if GitVersion != "" {
+		if BuildDate != "" {
+			versionCore = fmt.Sprintf("%s (revision %s built on %s)", versionCore, GitVersion, BuildDate)
+		} else {
+			versionCore = fmt.Sprintf("%s (%s)", versionCore, GitVersion)
+		}
+	}
+
 	return versionCore
 }
 

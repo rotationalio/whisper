@@ -3,8 +3,8 @@ package vault
 import (
 	"context"
 
+	smpb "cloud.google.com/go/secretmanager/apiv1/secretmanagerpb"
 	"github.com/googleapis/gax-go"
-	smpb "google.golang.org/genproto/googleapis/cloud/secretmanager/v1"
 )
 
 // secretManagerClient describes the methods used to interact with the Google Secret
