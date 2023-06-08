@@ -21,12 +21,12 @@ jobs:
       - name: Set up Go
         uses: actions/setup-go@v3
         with:
-          go-version: 1.20
+          go-version: 1.20.x
 
       - name: Cache Speedup
         uses: actions/cache@v3
         with:
-          path: ~/go/pkg/mod
+          path: ${{ env.GOPATH }}/pkg/mod
           key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
           restore-keys: |
             ${{ runner.os }}-go-
@@ -37,7 +37,7 @@ jobs:
           path: ${{ env.GOPATH }}/src/github.com/rotationalio/whisper
 
       - name: Install Staticcheck
-        run: go install honnef.co/go/tools/cmd/staticcheck@v0.3.3
+        run: go install honnef.co/go/tools/cmd/staticcheck@v0.4.3
 
       - name: Lint Go Code
         run: staticcheck ./...
@@ -61,12 +61,12 @@ jobs:
       - name: Set up Go
         uses: actions/setup-go@v3
         with:
-          go-version: 1.20
+          go-version: 1.20.x
 
       - name: Cache Speedup
         uses: actions/cache@v3
         with:
-          path: ~/go/pkg/mod
+          path: ${{ env.GOPATH }}/pkg/mod
           key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
           restore-keys: |
             ${{ runner.os }}-go-
