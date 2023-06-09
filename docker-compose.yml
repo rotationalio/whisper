@@ -19,7 +19,7 @@ services:
       - WHISPER_SENTRY_DSN
       - WHISPER_SENTRY_SERVER_NAME=localhost
       - WHISPER_SENTRY_ENVIRONMENT=development
-      - WHISPER_SENTRY_RELEASE=v1.2.0-dev
+      - WHISPER_SENTRY_RELEASE=v1.3.0-dev
       - WHISPER_SENTRY_TRACK_PERFORMANCE=true
       - WHISPER_SENTRY_SAMPLE_RATE=1.0
       - WHISPER_SENTRY_REPORT_ERRORS=true
@@ -39,7 +39,7 @@ services:
         - "REACT_APP_API_BASE_URL=http://localhost:8318/v1"
         - "REACT_APP_UI_BASE_URL=http://localhost:3000"
         - "REACT_APP_GIT_REVISION"
-        - "REACT_APP_RELEASE_VERSION=1.2.0-dev"
+        - "REACT_APP_RELEASE_VERSION=1.3.0-dev"
         - "REACT_APP_SENTRY_DSN"
         - "REACT_APP_SENTRY_ENVIRONMENT=staging"
         - "NODE_ENV=staging"

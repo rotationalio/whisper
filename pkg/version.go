@@ -10,10 +10,10 @@ import (
 // Version component constants for the current build.
 const (
 	VersionMajor         = 1
-	VersionMinor         = 1
-	VersionPatch         = 1
+	VersionMinor         = 2
+	VersionPatch         = 0
 	VersionReleaseLevel  = ""
-	VersionReleaseNumber = 0
+	VersionReleaseNumber = 5
 )
 
 // Set the GitVersion via -ldflags="-X 'github.com/rotationalio/whisper/pkg.GitVersion=$(git rev-parse --short HEAD)'"

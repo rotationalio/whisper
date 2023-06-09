@@ -10,10 +10,10 @@ import (
 type Config struct {
 	DSN              string  `split_words:"true"`
 	ServerName       string  `split_words:"true"`
-	Environment      string  `split_words:"true"`
+	Environment      string  `split_words:"true" default:"production"`
 	Release          string  `split_words:"true"`
-	TrackPerformance bool    `split_words:"true" default:"false"`
-	SampleRate       float64 `split_words:"true" default:"0.2"`
+	TrackPerformance bool    `split_words:"true" default:"true"`
+	SampleRate       float64 `split_words:"true" default:"0.25"`
 	ReportErrors     bool    `split_words:"true" default:"true"`
 	Repanic          bool    `ignored:"true"`
 	Debug            bool    `default:"false"`
