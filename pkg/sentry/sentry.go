@@ -43,8 +43,8 @@ func TrackPerformance(tags map[string]string) gin.HandlerFunc {
 		}
 
 		// Execute request and compute the performance of the request:
+		defer span.Finish()
 		c.Next()
-		span.Finish()
 	}
 }
 

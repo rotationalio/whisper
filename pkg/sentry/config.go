@@ -44,6 +44,7 @@ func (c Config) ClientOptions() sentry.ClientOptions {
 		AttachStacktrace: true,
 		Debug:            c.Debug,
 		ServerName:       c.ServerName,
+		EnableTracing:    c.TrackPerformance,
 		TracesSampleRate: c.SampleRate,
 	}
 }

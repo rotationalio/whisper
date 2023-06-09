@@ -8,14 +8,23 @@ services:
     ports:
       - "8318:8318"
     environment:
-      WHISPER_BIND_ADDR: ":8318"
-      WHISPER_MAINTENANCE: "false"
-      WHISPER_MODE: "debug"
-      WHISPER_LOG_LEVEL: "debug"
-      WHISPER_CONSOLE_LOG: "true"
-      GOOGLE_APPLICATION_CREDENTIALS: "/run/secret/whisper_sa"
-      GOOGLE_PROJECT_NAME: "rotationalio-habanero"
-      WHISPER_GOOGLE_TESTING: "true"
+      - WHISPER_BIND_ADDR=:8318
+      - WHISPER_MAINTENANCE=false
+      - WHISPER_MODE=debug
+      - WHISPER_LOG_LEVEL=debug
+      - WHISPER_CONSOLE_LOG=true
+      - GOOGLE_APPLICATION_CREDENTIALS=/run/secret/whisper_sa
+      - GOOGLE_PROJECT_NAME=rotationalio-habanero
+      - WHISPER_GOOGLE_TESTING=true
+      - WHISPER_SENTRY_DSN
+      - WHISPER_SENTRY_SERVER_NAME=localhost
+      - WHISPER_SENTRY_ENVIRONMENT=development
+      - WHISPER_SENTRY_RELEASE=v1.2.0-dev
+      - WHISPER_SENTRY_TRACK_PERFORMANCE=true
+      - WHISPER_SENTRY_SAMPLE_RATE=1.0
+      - WHISPER_SENTRY_REPORT_ERRORS=true
+      - WHISPER_SENTRY_REPANIC=true
+      - WHISPER_SENTRY_DEBUG=false
     secrets:
       - whisper_sa
     profiles:
@@ -29,7 +38,7 @@ services:
       args:
         - "REACT_APP_API_BASE_URL=http://localhost:8318/v1"
         - "REACT_APP_UI_BASE_URL=http://localhost:3000"
-        - "NODE_ENV=production"
+        - "NODE_ENV=staging"
     image: rotationalio/whisper-ui:local
     ports:
       - "3000:80"
