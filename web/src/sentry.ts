@@ -3,7 +3,7 @@ import { BrowserTracing } from "@sentry/tracing";
 
 const defaultTracingOrigins = ["localhost", /^\//];
 
-const initSentry = () => {
+const initSentry = (): void => {
     let appVersion = process.env.REACT_APP_RELEASE_VERSION;
     let gitRevision = process.env.REACT_APP_GIT_REVISION;
 
