@@ -48,6 +48,11 @@ func New(conf config.Config) (s *Server, err error) {
 
 	// Configure Sentry
 	if conf.Sentry.UseSentry() {
+		// Set the release version if not already set
+		if conf.Sentry.Release == "" {
+			conf.Sentry.Release = Version()
+		}
+
 		if err = sentry.Init(conf.Sentry); err != nil {
 			return nil, err
 		}
@@ -242,6 +247,7 @@ func (s *Server) setupRoutes() (err error) {
 	s.router.GET("/healthz", s.Healthz)
 	s.router.GET("/livez", s.Healthz)
 	s.router.GET("/readyz", s.Readyz)
+	s.router.GET("/errorz", s.Errorz)
 
 	// NotFound and NotAllowed requests
 	s.router.NoRoute(NotFound)

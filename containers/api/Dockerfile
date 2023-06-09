@@ -7,6 +7,7 @@ FROM ${BUILDER_IMAGE} as builder
 
 # Build Args
 ARG GIT_REVISION=""
+ARG SENTRY_DSN=""
 
 # Ensure ca-certificates are up to date on the image
 RUN update-ca-certificates
@@ -35,6 +36,10 @@ RUN go build -v -o /go/bin/whisper -ldflags="-X 'github.com/rotationalio/whisper
 # https://hub.docker.com/_/debian
 FROM ${FINAL_IMAGE} AS final
 
+# Build Args
+ARG GIT_REVISION=""
+ARG SENTRY_DSN=""
+
 LABEL maintainer="Rotational Labs <support@rotational.io>"
 LABEL description="Whisper, a secret management utility"
 
@@ -51,6 +56,9 @@ ENV WHISPER_MAINTENANCE=false
 ENV WHISPER_MODE=release
 ENV WHISPER_LOG_LEVEL=info
 ENV WHISPER_CONSOLE_LOG=false
+ENV WHISPER_SENTRY_SERVER_NAME=cloudrun
+ENV WHISPER_SENTRY_ENVIRONMENT=production
+ENV WHISPER_SENTRY_DSN=${SENTRY_DSN}
 
 # Run the web service on container startup.
 CMD [ "/usr/local/bin/whisper", "serve" ]
