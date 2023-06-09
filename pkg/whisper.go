@@ -242,7 +242,6 @@ func (s *Server) setupRoutes() (err error) {
 	s.router.GET("/healthz", s.Healthz)
 	s.router.GET("/livez", s.Healthz)
 	s.router.GET("/readyz", s.Readyz)
-	s.router.GET("/errorz", s.Errorz)
 
 	// NotFound and NotAllowed requests
 	s.router.NoRoute(NotFound)
