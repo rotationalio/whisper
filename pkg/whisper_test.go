@@ -120,7 +120,7 @@ func (s *WhisperTestSuite) TestCORS() {
 
 	// The Access-Control-Allow-Headers should match our sent headers
 	headers := rep.Header.Get("Access-Control-Allow-Headers")
-	s.Equal("Origin,Content-Length,Content-Type,Authorization", headers)
+	s.Equal("Origin,Content-Length,Content-Type,Authorization,X-Csrf-Token,Sentry-Trace,Baggage", headers)
 
 	// Add incorrect origin and headers to get CORS rejection
 	req, err = http.NewRequest(http.MethodOptions, server.URL+"/v1/status", nil)

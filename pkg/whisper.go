@@ -189,7 +189,7 @@ func (s *Server) setupRoutes() (err error) {
 	corsConf := cors.Config{
 		AllowOrigins:     s.conf.AllowOrigins,
 		AllowMethods:     []string{"GET", "POST", "PUT", "PATCH", "DELETE", "HEAD"},
-		AllowHeaders:     []string{"Origin", "Content-Length", "Content-Type", "Authorization"},
+		AllowHeaders:     []string{"Origin", "Content-Length", "Content-Type", "Authorization", "X-CSRF-TOKEN", "sentry-trace", "baggage"},
 		AllowCredentials: true,
 		MaxAge:           12 * time.Hour,
 	}
@@ -247,7 +247,6 @@ func (s *Server) setupRoutes() (err error) {
 	s.router.GET("/healthz", s.Healthz)
 	s.router.GET("/livez", s.Healthz)
 	s.router.GET("/readyz", s.Readyz)
-	s.router.GET("/errorz", s.Errorz)
 
 	// NotFound and NotAllowed requests
 	s.router.NoRoute(NotFound)
