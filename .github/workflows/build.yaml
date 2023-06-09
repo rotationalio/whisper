@@ -93,20 +93,20 @@ jobs:
         uses: actions/setup-node@v3
         with:
           node-version: 16.x.x
-          cache: "npm"
-          cache-dependency-path: ./web/package-lock.json
+          cache: "yarn"
+          cache-dependency-path: ./web/yarn.lock
 
       - name: Install Dependencies
         working-directory: ./web
-        run: npm install
+        run: yarn
 
       - name: Lint React Code
         working-directory: ./web
-        run: npm run lint
+        run: yarn lint
 
       - name: Run React Tests
         working-directory: ./web
-        run: npm run test
+        run: yarn test
 
   web_build:
     name: Web Build
@@ -119,13 +119,13 @@ jobs:
         uses: actions/setup-node@v3
         with:
           node-version: 16.x.x
-          cache: "npm"
-          cache-dependency-path: ./web/package-lock.json
+          cache: "yarn"
+          cache-dependency-path: ./web/yarn.lock
 
       - name: Install Dependencies
         working-directory: ./web
-        run: npm install
+        run: yarn
 
       - name: Build React Bundle
         working-directory: ./web
-        run: npm run build
+        run: yarn build
