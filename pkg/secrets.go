@@ -14,6 +14,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	v1 "github.com/rotationalio/whisper/pkg/api/v1"
+	"github.com/rotationalio/whisper/pkg/sentry"
 	"github.com/rotationalio/whisper/pkg/vault"
 	"github.com/rs/zerolog/log"
 )
@@ -30,7 +31,7 @@ func (s *Server) CreateSecret(c *gin.Context) {
 	// Parse incoming JSON data from the client request
 	var req v1.CreateSecretRequest
 	if err := c.ShouldBind(&req); err != nil {
-		log.Warn().Err(err).Msg("could not bind request")
+		sentry.Warn(c).Err(err).Msg("could not bind request")
 		c.JSON(http.StatusBadRequest, ErrorResponse("invalid create secret request"))
 		return
 	}
@@ -41,7 +42,7 @@ func (s *Server) CreateSecret(c *gin.Context) {
 		token string
 	)
 	if token, err = s.GenerateUniqueURL(context.TODO()); err != nil {
-		log.Error().Err(err).Msg("could not generate unique token for secret")
+		sentry.Error(c).Err(err).Msg("could not generate unique token for secret")
 		c.JSON(http.StatusInternalServerError, ErrorResponse(err))
 		return
 	}
@@ -54,7 +55,7 @@ func (s *Server) CreateSecret(c *gin.Context) {
 
 	// Store the password as a derived key
 	if err = meta.SetPassword(req.Password); err != nil {
-		log.Error().Err(err).Msg("could not create derived key")
+		sentry.Error(c).Err(err).Msg("could not create derived key")
 		c.JSON(http.StatusInternalServerError, ErrorResponse(err))
 		return
 	}
@@ -83,7 +84,7 @@ func (s *Server) CreateSecret(c *gin.Context) {
 			c.JSON(http.StatusBadRequest, ErrorResponse(err))
 			return
 		}
-		log.Error().Err(err).Msg("could not create new secret in vault")
+		sentry.Error(c).Err(err).Msg("could not create new secret in vault")
 		c.JSON(http.StatusInternalServerError, ErrorResponse(err))
 		return
 	}
@@ -115,7 +116,7 @@ func (s *Server) FetchSecret(c *gin.Context) {
 		case vault.ErrNotAuthorized:
 			c.JSON(http.StatusUnauthorized, ErrorResponse(err))
 		default:
-			log.Error().Err(err).Msg("could not fetch secret")
+			sentry.Error(c).Err(err).Msg("could not fetch secret")
 			c.JSON(http.StatusInternalServerError, ErrorResponse(err))
 		}
 		return
@@ -154,7 +155,7 @@ func (s *Server) DestroySecret(c *gin.Context) {
 		case vault.ErrNotAuthorized:
 			c.JSON(http.StatusUnauthorized, ErrorResponse(err))
 		default:
-			log.Error().Err(err).Msg("could not destroy secret")
+			sentry.Error(c).Err(err).Msg("could not destroy secret")
 			c.JSON(http.StatusInternalServerError, ErrorResponse(err))
 		}
 		return
@@ -216,7 +217,7 @@ func ParseBearerToken(header string) string {
 		groups := bearerRegex.FindStringSubmatch(header)
 		token, err := base64.URLEncoding.DecodeString(groups[1])
 		if err != nil {
-			log.Warn().Err(err).Msg("could not base64 decode Authorization header")
+			sentry.Warn(nil).Err(err).Msg("could not base64 decode Authorization header")
 			return ""
 		}
 		return string(token)
