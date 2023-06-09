@@ -11,11 +11,12 @@ import (
 	"syscall"
 	"time"
 
-	ginzerolog "github.com/dn365/gin-zerolog"
+	sentrygin "github.com/getsentry/sentry-go/gin"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"github.com/rotationalio/whisper/pkg/config"
 	"github.com/rotationalio/whisper/pkg/logger"
+	"github.com/rotationalio/whisper/pkg/sentry"
 	"github.com/rotationalio/whisper/pkg/vault"
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
@@ -44,6 +45,18 @@ func New(conf config.Config) (s *Server, err error) {
 
 	// Set the global level
 	zerolog.SetGlobalLevel(zerolog.Level(conf.LogLevel))
+
+	// Configure Sentry
+	if conf.Sentry.UseSentry() {
+		// Set the release version if not already set
+		if conf.Sentry.Release == "" {
+			conf.Sentry.Release = Version()
+		}
+
+		if err = sentry.Init(conf.Sentry); err != nil {
+			return nil, err
+		}
+	}
 
 	// Set human readable logging if specified
 	if conf.ConsoleLog {
@@ -120,7 +133,7 @@ func (s *Server) Serve() (err error) {
 	}
 
 	if err = <-s.errc; err != nil {
-		log.Error().Err(err).Msg("fatal error, server stopped")
+		sentry.Fatal(nil).Err(err).Msg("fatal error, server stopped")
 	}
 	return nil
 }
@@ -135,7 +148,7 @@ func (s *Server) Shutdown() (err error) {
 
 	s.srv.SetKeepAlivesEnabled(false)
 	if err = s.srv.Shutdown(ctx); err != nil {
-		log.Error().Err(err).Msg("could not shutdown http server")
+		sentry.Error(nil).Err(err).Msg("could not shutdown http server")
 		errs = append(errs, err)
 	}
 
@@ -159,6 +172,19 @@ func (s *Server) Routes() http.Handler {
 }
 
 func (s *Server) setupRoutes() (err error) {
+	// Instantiate Sentry handlers
+	var tags gin.HandlerFunc
+	if s.conf.Sentry.UseSentry() {
+		tagmap := map[string]string{"service": ServiceName}
+		tags = sentry.UseTags(tagmap)
+	}
+
+	var tracing gin.HandlerFunc
+	if s.conf.Sentry.UsePerformanceTracking() {
+		tagmap := map[string]string{"service": ServiceName}
+		tracing = sentry.TrackPerformance(tagmap)
+	}
+
 	// Setup CORS configuration
 	corsConf := cors.Config{
 		AllowOrigins:     s.conf.AllowOrigins,
@@ -173,10 +199,20 @@ func (s *Server) setupRoutes() (err error) {
 	middlewares := []gin.HandlerFunc{
 		// Logging should be on the outside so we can record the correct latency of requests
 		// NOTE: logging panics will not recover
-		ginzerolog.Logger(ServiceName),
+		logger.GinLogger(ServiceName, Version()),
 
-		//Panic recovery middleware
+		// Panic recovery middleware
 		gin.Recovery(),
+		sentrygin.New(sentrygin.Options{
+			Repanic:         true,
+			WaitForDelivery: false,
+		}),
+
+		// Add searchable tags to sentry context
+		tags,
+
+		// Tracing helps us measure performance metrics with Sentry
+		tracing,
 
 		// CORS configuration allows the front-end to make cross-origin requests
 		cors.New(corsConf),
@@ -211,6 +247,7 @@ func (s *Server) setupRoutes() (err error) {
 	s.router.GET("/healthz", s.Healthz)
 	s.router.GET("/livez", s.Healthz)
 	s.router.GET("/readyz", s.Readyz)
+	s.router.GET("/errorz", s.Errorz)
 
 	// NotFound and NotAllowed requests
 	s.router.NoRoute(NotFound)

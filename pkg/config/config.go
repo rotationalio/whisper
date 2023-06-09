@@ -9,23 +9,25 @@ import (
 	"errors"
 	"fmt"
 	"os"
-	"strings"
 
 	"github.com/gin-gonic/gin"
 	"github.com/kelseyhightower/envconfig"
+	"github.com/rotationalio/whisper/pkg/logger"
+	"github.com/rotationalio/whisper/pkg/sentry"
 	"github.com/rs/zerolog"
 )
 
 // Config uses envconfig to load required settings from the environment and validate
 // them in preparation for running the whisper service.
 type Config struct {
-	Maintenance  bool            `split_words:"true" default:"false"`
-	Mode         string          `split_words:"true" default:"debug"`
-	BindAddr     string          `split_words:"true" required:"false"`
-	LogLevel     LogLevelDecoder `split_words:"true" default:"info"`
-	ConsoleLog   bool            `split_words:"true" default:"false"`
-	AllowOrigins []string        `split_words:"true" default:"https://whisper.rotational.dev"`
+	Maintenance  bool                `split_words:"true" default:"false"`
+	Mode         string              `split_words:"true" default:"debug"`
+	BindAddr     string              `split_words:"true" required:"false"`
+	LogLevel     logger.LevelDecoder `split_words:"true" default:"info"`
+	ConsoleLog   bool                `split_words:"true" default:"false"`
+	AllowOrigins []string            `split_words:"true" default:"https://whisper.rotational.dev"`
 	Google       GoogleConfig
+	Sentry       sentry.Config
 	processed    bool
 }
 
@@ -78,33 +80,6 @@ func (c Config) Validate() error {
 
 	if c.Mode != gin.ReleaseMode && c.Mode != gin.DebugMode && c.Mode != gin.TestMode {
 		return fmt.Errorf("%q is not a valid gin mode", c.Mode)
-	}
-	return nil
-}
-
-// LogLevelDecoder deserializes the log level from a config string.
-type LogLevelDecoder zerolog.Level
-
-// Decode implements envconfig.Decoder
-func (ll *LogLevelDecoder) Decode(value string) error {
-	value = strings.TrimSpace(strings.ToLower(value))
-	switch value {
-	case "panic":
-		*ll = LogLevelDecoder(zerolog.PanicLevel)
-	case "fatal":
-		*ll = LogLevelDecoder(zerolog.FatalLevel)
-	case "error":
-		*ll = LogLevelDecoder(zerolog.ErrorLevel)
-	case "warn":
-		*ll = LogLevelDecoder(zerolog.WarnLevel)
-	case "info":
-		*ll = LogLevelDecoder(zerolog.InfoLevel)
-	case "debug":
-		*ll = LogLevelDecoder(zerolog.DebugLevel)
-	case "trace":
-		*ll = LogLevelDecoder(zerolog.TraceLevel)
-	default:
-		return fmt.Errorf("unknown log level %q", value)
 	}
 	return nil
 }

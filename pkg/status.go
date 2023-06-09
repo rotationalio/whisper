@@ -1,11 +1,13 @@
 package whisper
 
 import (
+	"math/rand"
 	"net/http"
 	"time"
 
 	"github.com/gin-gonic/gin"
 	v1 "github.com/rotationalio/whisper/pkg/api/v1"
+	"github.com/rotationalio/whisper/pkg/sentry"
 )
 
 const (
@@ -89,4 +91,14 @@ func (s *Server) Readyz(c *gin.Context) {
 	}
 
 	c.Data(http.StatusOK, "text/plain", []byte(serverStatusOK))
+}
+
+// Errorz is used to trigger a sentry error to make sure Sentry is configured.
+func (s *Server) Errorz(c *gin.Context) {
+	// Random sleep for tracing
+	delay := time.Duration(rand.Int63n(int64(1500*time.Millisecond))) + (10 * time.Millisecond)
+	time.Sleep(delay)
+
+	sentry.Error(c).Msg("an errorz alert has been triggered")
+	c.Data(http.StatusInternalServerError, "text/plain", []byte(serverStatusUnhealthy))
 }

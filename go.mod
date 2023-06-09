@@ -4,12 +4,13 @@ go 1.20
 
 require (
 	cloud.google.com/go/secretmanager v1.11.0
-	github.com/dn365/gin-zerolog v0.0.0-20171227063204-b43714b00db1
+	github.com/getsentry/sentry-go v0.21.0
 	github.com/gin-contrib/cors v1.4.0
 	github.com/gin-gonic/gin v1.9.1
 	github.com/googleapis/gax-go v1.0.3
 	github.com/joho/godotenv v1.5.1
 	github.com/kelseyhightower/envconfig v1.4.0
+	github.com/oklog/ulid/v2 v2.1.0
 	github.com/rs/zerolog v1.29.1
 	github.com/stretchr/testify v1.8.4
 	github.com/urfave/cli/v2 v2.25.5

@@ -5,6 +5,9 @@ import App from "./App";
 import { ThemeProvider } from "@material-ui/core";
 import GlobalStyles from "./styles/globalStyles";
 import theme from "theme";
+import initSentry from "./sentry";
+
+initSentry();
 
 ReactDOM.render(
 	<React.StrictMode>

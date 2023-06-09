@@ -116,31 +116,6 @@ func TestGoogleTesting(t *testing.T) {
 	require.True(t, conf.Google.Testing)
 }
 
-func TestLogLevelDecoder(t *testing.T) {
-	tt := []struct {
-		name  string
-		level zerolog.Level
-	}{
-		{"panic", zerolog.PanicLevel},
-		{"FATAL", zerolog.FatalLevel},
-		{"  eRrOr  ", zerolog.ErrorLevel},
-		{"warn", zerolog.WarnLevel},
-		{"info", zerolog.InfoLevel},
-		{"DEBUG", zerolog.DebugLevel},
-		{"  trace", zerolog.TraceLevel},
-	}
-
-	for _, tc := range tt {
-		ll := new(config.LogLevelDecoder)
-		require.NoError(t, ll.Decode(tc.name))
-		require.Equal(t, tc.level, zerolog.Level(*ll))
-	}
-
-	// Handle unknown level
-	ll := new(config.LogLevelDecoder)
-	require.EqualError(t, ll.Decode("foo"), "unknown log level \"foo\"")
-}
-
 // Returns the current environment for the specified keys, or if no keys are specified
 // then returns the current environment for all keys in testEnv.
 func curEnv(keys ...string) map[string]string {

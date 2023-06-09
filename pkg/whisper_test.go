@@ -9,6 +9,7 @@ import (
 	"github.com/gin-gonic/gin"
 	. "github.com/rotationalio/whisper/pkg"
 	"github.com/rotationalio/whisper/pkg/config"
+	"github.com/rotationalio/whisper/pkg/logger"
 	"github.com/rs/zerolog"
 	"github.com/stretchr/testify/suite"
 )
@@ -51,7 +52,7 @@ func (s *WhisperTestSuite) SetupSuite() {
 	s.NoError(err)
 
 	// No logging output during tests
-	s.conf.LogLevel = config.LogLevelDecoder(zerolog.PanicLevel)
+	logger.Discard()
 
 	// Use mock Google Secret Manager for tests
 	s.conf.Google.Testing = true
@@ -76,6 +77,7 @@ func (s *WhisperTestSuite) TearDownSuite() {
 			os.Unsetenv(key)
 		}
 	}
+	logger.ResetLogger()
 }
 
 func TestWhisper(t *testing.T) {
