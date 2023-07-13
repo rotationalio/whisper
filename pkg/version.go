@@ -11,9 +11,9 @@ import (
 const (
 	VersionMajor         = 1
 	VersionMinor         = 2
-	VersionPatch         = 0
+	VersionPatch         = 1
 	VersionReleaseLevel  = ""
-	VersionReleaseNumber = 5
+	VersionReleaseNumber = 6
 )
 
 // Set the GitVersion via -ldflags="-X 'github.com/rotationalio/whisper/pkg.GitVersion=$(git rev-parse --short HEAD)'"
